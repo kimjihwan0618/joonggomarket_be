@@ -12,7 +12,12 @@ import databaseConfig from './config/database.config';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      ...databaseConfig,
+      type: databaseConfig().type,
+      host: databaseConfig().host,
+      port: databaseConfig().port,
+      username: databaseConfig().username,
+      password: databaseConfig().password,
+      database: databaseConfig().database,
       entities: [User, Board],
       synchronize: true,
       logging: true,
