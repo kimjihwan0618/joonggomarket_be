@@ -4,11 +4,11 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
-  CreateDateColumn,
+  // CreateDateColumn,
 } from 'typeorm';
 
 @ObjectType()
-@Entity('users')
+@Entity('user_list')
 export class User {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
@@ -27,6 +27,14 @@ export class User {
   password: string;
 
   @Field(() => GraphQLDateTime)
-  @CreateDateColumn({ type: 'timestamp' })
+  @Column({ type: 'timestamp', default: () => 'NOW()' })
   createdAt: Date;
+
+  @Field(() => GraphQLDateTime, { nullable: true })
+  @Column({ type: 'timestamp', nullable: true, default: null })
+  updatedAt: Date;
+
+  @Field(() => GraphQLDateTime, { nullable: true })
+  @Column({ type: 'timestamp', nullable: true, default: null })
+  deletedAt: Date;
 }

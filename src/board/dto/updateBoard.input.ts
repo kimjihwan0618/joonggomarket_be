@@ -1,4 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql';
+import { BoardAddressInput } from './boardAddress.input';
 
 @InputType()
 export class UpdateBoardInput {
@@ -9,5 +10,11 @@ export class UpdateBoardInput {
   contents: string;
 
   @Field({ nullable: true })
-  youtubeUrl?: string;
+  youtubeUrl: string;
+
+  @Field({ nullable: true })
+  boardAddress: BoardAddressInput;
+
+  @Field(() => [String], { nullable: true })
+  images: string[];
 }

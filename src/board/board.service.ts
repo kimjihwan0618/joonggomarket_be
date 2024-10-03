@@ -1,21 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Board } from './boards.entity';
+import { Board } from './entity/board.entity';
 import { CreateBoardInput } from './dto/createBoard.input';
 import { FetchBoardsInput } from './dto/fetchBoards.input';
 import { UpdateBoardInput } from './dto/updateBoard.input';
+import { BoardAddress } from './entity/boardAddress.entity';
 
 @Injectable()
-export class BoardsService {
+export class BoardService {
   constructor(
     @InjectRepository(Board)
-    private boardsRepository: Repository<Board>,
+    private boardRepository: Repository<Board>,
+
+    @InjectRepository(BoardAddress)
+    private boardAddressRepository: Repository<BoardAddress>,
   ) {}
 
   async findAll(fetchBoardsInput: FetchBoardsInput): Promise<Board[]> {
     const { startDate, endDate, search, page } = fetchBoardsInput;
-    const query = this.boardsRepository.createQueryBuilder('board');
+    const query = this.boardRepository.createQueryBuilder('board');
 
     if (startDate && endDate) {
       query.andWhere('board.createdAt BETWEEN :startDate AND :endDate', {
@@ -39,12 +43,15 @@ export class BoardsService {
   }
 
   findOne(_id: string): Promise<Board> {
-    return this.boardsRepository.findOneBy({ _id });
+    return this.boardRepository.findOne({
+      where: { _id },
+      relations: ['boardAddress'],
+    });
   }
 
   async create(createBoardInput: CreateBoardInput): Promise<Board> {
-    const board = this.boardsRepository.create(createBoardInput);
-    return this.boardsRepository.save(board);
+    const board = this.boardRepository.create(createBoardInput);
+    return this.boardRepository.save(board);
   }
 
   async update(
@@ -52,7 +59,7 @@ export class BoardsService {
     boardId: string,
     password: string,
   ): Promise<Board> {
-    const board = await this.boardsRepository.findOneBy({
+    const board = await this.boardRepository.findOneBy({
       _id: boardId,
       password,
     });
@@ -60,11 +67,11 @@ export class BoardsService {
       throw new Error('Board not found');
     }
     Object.assign(board, updateBoardInput);
-    return this.boardsRepository.save(board);
+    return this.boardRepository.save(board);
   }
 
   async remove(boardId: string): Promise<boolean> {
-    const result = await this.boardsRepository.delete(boardId);
+    const result = await this.boardRepository.delete(boardId);
     return result.affected > 0;
   }
 }
