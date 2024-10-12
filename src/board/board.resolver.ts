@@ -32,7 +32,6 @@ export class BoardResolver {
     return this.boardService.create(createBoardInput);
   }
 
-  // @UseGuards(GqlAuthGuard)
   @Mutation(() => Board)
   async updateBoard(
     @Args('updateBoardInput') updateBoardInput: UpdateBoardInput,
@@ -42,7 +41,6 @@ export class BoardResolver {
     return this.boardService.update(updateBoardInput, boardId, password);
   }
 
-  // @UseGuards(GqlAuthGuard)
   @Mutation(() => Boolean)
   async deleteBoard(
     @Args('boardId', { type: () => ID }) boardId: string,

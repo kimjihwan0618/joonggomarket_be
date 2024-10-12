@@ -14,8 +14,8 @@ import { BoardAddress } from './boardAddress.entity';
 @Entity('board_list')
 export class Board {
   @OneToOne(() => BoardAddress, { cascade: true })
-  @JoinColumn({ name: '_id' })
-  @Field(() => BoardAddress, { nullable: true }) // GraphQL에서 boardAddress 필드 사용
+  @JoinColumn({ name: '_id' }) // 외래키를 설정
+  @Field(() => BoardAddress, { nullable: true })
   boardAddress: BoardAddress;
 
   @Field(() => ID)

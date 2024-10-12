@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Board } from './entity/board.entity';
@@ -50,7 +50,15 @@ export class BoardService {
   }
 
   async create(createBoardInput: CreateBoardInput): Promise<Board> {
-    const board = this.boardRepository.create(createBoardInput);
+    const boardAddress = createBoardInput.boardAddress
+      ? await this.boardAddressRepository.save(createBoardInput.boardAddress)
+      : null;
+
+    const board = this.boardRepository.create({
+      ...createBoardInput,
+      boardAddress,
+    });
+
     return this.boardRepository.save(board);
   }
 
@@ -59,19 +67,44 @@ export class BoardService {
     boardId: string,
     password: string,
   ): Promise<Board> {
-    const board = await this.boardRepository.findOneBy({
-      _id: boardId,
-      password,
+    const fetchBoard = await this.boardRepository.findOne({
+      where: { _id: boardId, password },
+      relations: ['boardAddress'],
+    });
+
+    if (!fetchBoard) {
+      throw new NotFoundException('Board not found');
+    }
+
+    const { boardAddress, ...selectBoard } = fetchBoard;
+    const { title, contents, youtubeUrl, images } = updateBoardInput;
+    const { zipcode, address, addressDetail } = updateBoardInput.boardAddress;
+    const resultBoard = await this.boardRepository.save({
+      ...selectBoard,
+      title,
+      contents,
+      youtubeUrl,
+      images,
+    });
+    const resultBoardAddress = await this.boardAddressRepository.save({
+      ...boardAddress,
+      zipcode,
+      address,
+      addressDetail,
+    });
+
+    return { ...resultBoard, boardAddress: { ...resultBoardAddress } };
+  }
+  async remove(boardId: string): Promise<boolean> {
+    const board = await this.boardRepository.findOne({
+      where: { _id: boardId },
+      relations: ['boardAddress'],
     });
     if (!board) {
-      throw new Error('Board not found');
+      throw new NotFoundException('Board not found');
     }
-    Object.assign(board, updateBoardInput);
-    return this.boardRepository.save(board);
-  }
-
-  async remove(boardId: string): Promise<boolean> {
-    const result = await this.boardRepository.delete(boardId);
-    return result.affected > 0;
+    await this.boardRepository.remove(board);
+    // await this.boardAddressRepository.remove(board.boardAddress);
+    return true;
   }
 }
