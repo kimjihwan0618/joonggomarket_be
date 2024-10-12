@@ -13,7 +13,11 @@ import { BoardAddress } from './boardAddress.entity';
 @ObjectType()
 @Entity('board_list')
 export class Board {
-  @OneToOne(() => BoardAddress, { cascade: true })
+  // @OneToOne(() => BoardAddress, { cascade: true })
+  @OneToOne(() => BoardAddress, (boardAddress) => boardAddress, {
+    onDelete: 'CASCADE',
+    cascade: true,
+  }) // cascade 추가
   @JoinColumn({ name: '_id' }) // 외래키를 설정
   @Field(() => BoardAddress, { nullable: true })
   boardAddress: BoardAddress;

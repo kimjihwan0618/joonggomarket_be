@@ -4,12 +4,18 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
+  OneToOne,
   // CreateDateColumn,
 } from 'typeorm';
+import { Board } from './board.entity';
 
 @ObjectType()
 @Entity('board_address')
 export class BoardAddress {
+  // @OneToOne(() => Board, (board) => board, {
+  //   onDelete: 'CASCADE',
+  //   cascade: true,
+  // })
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   _id: string;
