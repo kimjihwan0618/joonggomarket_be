@@ -3,9 +3,10 @@ import { BoardService } from './board.service';
 import { Board } from './entity/board.entity';
 // import { UseGuards } from '@nestjs/common';
 // import { GqlAuthGuard } from '../auth/gql-auth.guard';
+import { GraphQLDateTime } from 'graphql-scalars';
 import { CreateBoardInput } from './dto/createBoard.input';
-import { FetchBoardsInput } from './dto/fetchBoards.input';
 import { UpdateBoardInput } from './dto/updateBoard.input';
+import { Int } from '@nestjs/graphql';
 
 @Resolver(() => Board)
 export class BoardResolver {
@@ -13,10 +14,16 @@ export class BoardResolver {
 
   @Query(() => [Board])
   async fetchBoards(
-    @Args('fetchBoardsInput') fetchBoardsInput: FetchBoardsInput,
+    @Args('endDate', { type: () => GraphQLDateTime, nullable: true })
+    endDate: Date,
+    @Args('startDate', { type: () => GraphQLDateTime, nullable: true })
+    startDate: Date,
+    @Args('search', { nullable: true }) search: string,
+    @Args('page', { type: () => Int, nullable: true }) page: number,
   ): Promise<Board[]> {
-    return this.boardService.findAll(fetchBoardsInput);
+    return this.boardService.findAll(endDate, startDate, search, page);
   }
+
   @Query(() => Board)
   async fetchBoard(
     @Args('boardId', { type: () => ID }) id: string,
@@ -45,6 +52,6 @@ export class BoardResolver {
   async deleteBoard(
     @Args('boardId', { type: () => ID }) boardId: string,
   ): Promise<boolean> {
-    return this.boardService.remove(boardId);
+    return this.boardService.delete(boardId);
   }
 }

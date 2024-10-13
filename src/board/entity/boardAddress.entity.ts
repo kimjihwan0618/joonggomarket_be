@@ -1,21 +1,15 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-// import { GraphQLDateTime } from 'graphql-scalars';
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  OneToOne,
-  // CreateDateColumn,
-} from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { Board } from './board.entity';
 
 @ObjectType()
 @Entity('board_address')
 export class BoardAddress {
-  // @OneToOne(() => Board, (board) => board, {
-  //   onDelete: 'CASCADE',
-  //   cascade: true,
-  // })
+  @ManyToOne(() => Board, (board) => board.boardAddress, {
+    onDelete: 'CASCADE',
+  })
+  board: Board;
+
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   _id: string;

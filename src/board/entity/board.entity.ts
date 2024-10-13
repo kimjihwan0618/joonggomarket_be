@@ -6,19 +6,18 @@ import {
   PrimaryGeneratedColumn,
   OneToOne,
   JoinColumn,
-  // CreateDateColumn,
 } from 'typeorm';
 import { BoardAddress } from './boardAddress.entity';
+import { Int } from '@nestjs/graphql';
 
 @ObjectType()
 @Entity('board_list')
 export class Board {
-  // @OneToOne(() => BoardAddress, { cascade: true })
-  @OneToOne(() => BoardAddress, (boardAddress) => boardAddress, {
-    onDelete: 'CASCADE',
+  @OneToOne(() => BoardAddress, (boardAddress) => boardAddress.board, {
     cascade: true,
-  }) // cascade 추가
-  @JoinColumn({ name: '_id' }) // 외래키를 설정
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn()
   @Field(() => BoardAddress, { nullable: true })
   boardAddress: BoardAddress;
 
@@ -42,11 +41,11 @@ export class Board {
   @Column({ nullable: true }) // TypeORM에서 NULL 값을 허용하도록 설정
   youtubeUrl: string; // 선택적 필드
 
-  @Field()
+  @Field(() => Int)
   @Column({ default: 0 })
   likeCount: number;
 
-  @Field()
+  @Field(() => Int)
   @Column({ default: 0 })
   disklikeCount: number;
 
@@ -55,7 +54,6 @@ export class Board {
   images: string[];
 
   @HideField()
-  @Field()
   @Column()
   password: string;
 

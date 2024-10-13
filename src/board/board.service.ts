@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+// import { Int } from '@nestjs/graphql';
 import { Board } from './entity/board.entity';
 import { CreateBoardInput } from './dto/createBoard.input';
-import { FetchBoardsInput } from './dto/fetchBoards.input';
 import { UpdateBoardInput } from './dto/updateBoard.input';
 import { BoardAddress } from './entity/boardAddress.entity';
 import * as log4js from 'log4js';
@@ -19,8 +19,12 @@ export class BoardService {
     private boardAddressRepository: Repository<BoardAddress>,
   ) {}
 
-  async findAll(fetchBoardsInput: FetchBoardsInput): Promise<Board[]> {
-    const { startDate, endDate, search, page } = fetchBoardsInput;
+  async findAll(
+    endDate: Date,
+    startDate: Date,
+    search: string,
+    page: number,
+  ): Promise<Board[]> {
     const query = this.boardRepository.createQueryBuilder('board');
 
     if (startDate && endDate) {
@@ -31,7 +35,7 @@ export class BoardService {
     }
 
     if (search) {
-      query.andWhere('board.title LIKE :search OR board.content LIKE :search', {
+      query.andWhere('board.title LIKE :search OR board.title LIKE :search', {
         search: `%${search}%`,
       });
     }
@@ -56,10 +60,10 @@ export class BoardService {
       const boardAddress = createBoardInput.boardAddress
         ? await this.boardAddressRepository.save(createBoardInput.boardAddress)
         : null;
-
       const board = this.boardRepository.create({
         ...createBoardInput,
         boardAddress,
+        _id: boardAddress._id,
       });
       this.logger.info(`-- 게시글 생성 : ${JSON.stringify(board)} --`);
       return this.boardRepository.save(board);
@@ -106,15 +110,15 @@ export class BoardService {
       this.logger.error(`-- 게시글 수정 Error: ${error} --`);
     }
   }
-  async remove(boardId: string): Promise<boolean> {
-    const board = await this.boardRepository.findOne({
+
+  async delete(boardId: string): Promise<boolean> {
+    const board = await this.boardAddressRepository.findOne({
       where: { _id: boardId },
-      relations: ['boardAddress'],
     });
     if (!board) {
       throw new NotFoundException('Board not found');
     }
-    await this.boardRepository.delete(boardId);
+    await this.boardAddressRepository.delete(boardId);
     return true;
   }
 }
