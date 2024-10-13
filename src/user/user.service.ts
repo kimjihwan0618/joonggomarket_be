@@ -4,16 +4,20 @@ import { Repository } from 'typeorm';
 import { User } from './entity/user.entity';
 import * as bcrypt from 'bcrypt';
 import { CreateUserInput } from './dto/createUser.input';
+import { UserPoint } from './entity/userPoint.entity';
 
 @Injectable()
-export class UsersService {
+export class UserService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+
+    @InjectRepository(UserPoint)
+    private usersPointRepository: Repository<UserPoint>,
   ) {}
 
-  async findOne(username: string): Promise<User | undefined> {
-    return this.usersRepository.findOneBy({ username });
+  async findOne(name: string): Promise<User | undefined> {
+    return this.usersRepository.findOneBy({ name });
   }
 
   async create(createUserInput: CreateUserInput): Promise<User> {

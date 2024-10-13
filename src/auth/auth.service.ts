@@ -1,33 +1,42 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../user/user.service';
+import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcryptjs';
 import { User } from '@/user/entity/user.entity';
+import * as log4js from 'log4js';
+import { Token } from './dto/token.type';
 
 @Injectable()
 export class AuthService {
+  private logger = log4js.getLogger(AuthService.name);
   constructor(
-    private readonly usersService: UsersService,
+    private readonly userService: UserService,
     private readonly jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usersService.findOneByUserEmail(email);
+  async validateUser(password: string, email: string): Promise<any> {
+    const user = await this.userService.findOneByUserEmail(email);
     if (user && (await bcrypt.compare(password, user.password))) {
       const { ...result } = user;
+      this.logger.info(
+        `-- 유저 로그인 validate success: email:${email}, password:${password} --`,
+      );
       return result;
     }
+    this.logger.error(
+      `-- 유저 로그인 validate error : email:${email}, password:${password} --`,
+    );
     return null;
   }
 
-  async login(user: Omit<User, 'password'>) {
+  async loginUser(user: Omit<User, 'password'>): Promise<Token> {
     const payload = {
-      username: user.username,
+      name: user.name,
       sub: user._id,
       email: user.email,
     };
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
+    const result = new Token(); //
+    result.accessToken = this.jwtService.sign(payload);
+    return result;
   }
 }

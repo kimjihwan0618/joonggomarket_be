@@ -1,11 +1,14 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, HideField, ID, ObjectType } from '@nestjs/graphql';
 import { GraphQLDateTime } from 'graphql-scalars';
 import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
+  OneToOne,
+  JoinColumn,
   // CreateDateColumn,
 } from 'typeorm';
+import { UserPoint } from './userPoint.entity';
 
 @ObjectType()
 @Entity('user_list')
@@ -16,13 +19,25 @@ export class User {
 
   @Field()
   @Column()
-  username: string;
-
-  @Field()
-  @Column()
   email: string;
 
   @Field()
+  @Column()
+  name: string;
+
+  @Field()
+  @Column()
+  picture: string;
+
+  @OneToOne(() => UserPoint, (userPoint) => userPoint.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn()
+  @Field(() => UserPoint, { nullable: true })
+  userPoint: UserPoint;
+
+  @HideField()
   @Column()
   password: string;
 

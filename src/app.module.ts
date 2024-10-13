@@ -9,6 +9,7 @@ import { BoardsModule } from './board/board.module';
 import { AuthModule } from './auth/auth.module';
 import databaseConfig from './config/database.config';
 import { BoardAddress } from './board/entity/boardAddress.entity';
+import { UserPoint } from './user/entity/userPoint.entity';
 
 const { type, host, port, username, password, database } = databaseConfig();
 
@@ -21,7 +22,7 @@ const { type, host, port, username, password, database } = databaseConfig();
       username,
       password,
       database,
-      entities: [User, Board, BoardAddress],
+      entities: [User, Board, BoardAddress, UserPoint],
       synchronize: true,
       logging: true,
     }),
