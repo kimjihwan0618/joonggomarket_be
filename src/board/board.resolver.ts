@@ -1,8 +1,6 @@
 import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { BoardService } from './board.service';
 import { Board } from './entity/board.entity';
-// import { UseGuards } from '@nestjs/common';
-// import { GqlAuthGuard } from '../auth/gql-auth.guard';
 import { GraphQLDateTime } from 'graphql-scalars';
 import { CreateBoardInput } from './dto/createBoard.input';
 import { UpdateBoardInput } from './dto/updateBoard.input';
@@ -21,14 +19,30 @@ export class BoardResolver {
     @Args('search', { nullable: true }) search: string,
     @Args('page', { type: () => Int, nullable: true }) page: number,
   ): Promise<Board[]> {
-    return this.boardService.findAll(endDate, startDate, search, page);
+    return this.boardService.fetchBoards(endDate, startDate, search, page);
+  }
+
+  @Query(() => [Board])
+  async fetchBoardsOfTheBest(): Promise<Board[]> {
+    return this.boardService.fetchBoardsOfTheBest();
+  }
+
+  @Query(() => Int)
+  async fetchBoardsCount(
+    @Args('endDate', { type: () => GraphQLDateTime, nullable: true })
+    endDate: Date,
+    @Args('startDate', { type: () => GraphQLDateTime, nullable: true })
+    startDate: Date,
+    @Args('search', { nullable: true }) search: string,
+  ): Promise<number> {
+    return this.boardService.fetchBoardsCount(endDate, startDate, search);
   }
 
   @Query(() => Board)
   async fetchBoard(
     @Args('boardId', { type: () => ID }) id: string,
   ): Promise<Board> {
-    return this.boardService.findOne(id);
+    return this.boardService.fetchBoard(id);
   }
 
   // @UseGuards(GqlAuthGuard) // jwt 인증시 필요 어노테이션
@@ -36,7 +50,7 @@ export class BoardResolver {
   async createBoard(
     @Args('createBoardInput') createBoardInput: CreateBoardInput,
   ): Promise<Board> {
-    return this.boardService.create(createBoardInput);
+    return this.boardService.createBoard(createBoardInput);
   }
 
   @Mutation(() => Board)
@@ -45,13 +59,13 @@ export class BoardResolver {
     @Args('boardId', { type: () => ID }) boardId: string,
     @Args('password') password: string,
   ): Promise<Board> {
-    return this.boardService.update(updateBoardInput, boardId, password);
+    return this.boardService.updateBoard(updateBoardInput, boardId, password);
   }
 
   @Mutation(() => Boolean)
   async deleteBoard(
     @Args('boardId', { type: () => ID }) boardId: string,
   ): Promise<boolean> {
-    return this.boardService.delete(boardId);
+    return this.boardService.deleteBoard(boardId);
   }
 }

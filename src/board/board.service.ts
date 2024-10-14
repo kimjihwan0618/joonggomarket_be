@@ -18,7 +18,7 @@ export class BoardService {
     private boardAddressRepository: Repository<BoardAddress>,
   ) {}
 
-  async findAll(
+  async fetchBoards(
     endDate: Date,
     startDate: Date,
     search: string,
@@ -39,22 +39,52 @@ export class BoardService {
       });
     }
 
-    if (page) {
-      const limit = 10; // 예를 들어 페이지당 10개의 결과
-      query.skip((page - 1) * limit).take(limit);
-    }
+    const limit = 10; // 페이지당 10개의 결과
+    const currentPage = page || 1; // page가 제공되지 않으면 1로 설정
+
+    query.skip((currentPage - 1) * limit).take(limit);
+    return query.getMany();
+  }
+
+  async fetchBoardsOfTheBest(): Promise<Board[]> {
+    const query = this.boardRepository.createQueryBuilder('board');
+
+    query.orderBy('board.likeCount', 'DESC').limit(4);
 
     return query.getMany();
   }
 
-  findOne(_id: string): Promise<Board> {
+  async fetchBoardsCount(
+    endDate: Date,
+    startDate: Date,
+    search: string,
+  ): Promise<number> {
+    const query = this.boardRepository.createQueryBuilder('board');
+
+    if (startDate && endDate) {
+      query.andWhere('board.createdAt BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      });
+    }
+
+    if (search) {
+      query.andWhere('board.title LIKE :search OR board.title LIKE :search', {
+        search: `%${search}%`,
+      });
+    }
+
+    return query.getCount();
+  }
+
+  fetchBoard(_id: string): Promise<Board> {
     return this.boardRepository.findOne({
       where: { _id },
       relations: ['boardAddress'],
     });
   }
 
-  async create(createBoardInput: CreateBoardInput): Promise<Board> {
+  async createBoard(createBoardInput: CreateBoardInput): Promise<Board> {
     return await this.boardRepository.manager.transaction(
       async (transactionalEntityManager: EntityManager) => {
         try {
@@ -80,7 +110,7 @@ export class BoardService {
     );
   }
 
-  async update(
+  async updateBoard(
     updateBoardInput: UpdateBoardInput,
     boardId: string,
     password: string,
@@ -137,7 +167,7 @@ export class BoardService {
     );
   }
 
-  async delete(boardId: string): Promise<boolean> {
+  async deleteBoard(boardId: string): Promise<boolean> {
     const board = await this.boardAddressRepository.findOne({
       where: { _id: boardId },
     });
