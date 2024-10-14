@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { Board } from './entity/board.entity';
 import { CreateBoardInput } from './dto/createBoard.input';
 import { UpdateBoardInput } from './dto/updateBoard.input';
@@ -55,20 +55,29 @@ export class BoardService {
   }
 
   async create(createBoardInput: CreateBoardInput): Promise<Board> {
-    try {
-      const boardAddress = createBoardInput.boardAddress
-        ? await this.boardAddressRepository.save(createBoardInput.boardAddress)
-        : null;
-      const board = this.boardRepository.create({
-        ...createBoardInput,
-        boardAddress,
-        _id: boardAddress._id,
-      });
-      this.logger.info(`-- 게시글 생성 : ${JSON.stringify(board)} --`);
-      return this.boardRepository.save(board);
-    } catch (error) {
-      this.logger.error(`-- 게시글 생성 Error: ${error} --`);
-    }
+    return await this.boardRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          const boardAddress = createBoardInput.boardAddress
+            ? await transactionalEntityManager.save(
+                BoardAddress,
+                createBoardInput.boardAddress,
+              )
+            : null;
+          const board = this.boardRepository.create({
+            ...createBoardInput,
+            boardAddress,
+            _id: boardAddress?._id,
+          });
+          this.logger.info(`-- 게시글 생성 : ${JSON.stringify(board)} --`);
+
+          return await transactionalEntityManager.save(Board, board);
+        } catch (error) {
+          this.logger.error(`-- 게시글 생성 Error: ${error} --`);
+          throw error;
+        }
+      },
+    );
   }
 
   async update(
@@ -76,38 +85,56 @@ export class BoardService {
     boardId: string,
     password: string,
   ): Promise<Board> {
-    try {
-      const fetchBoard = await this.boardRepository.findOne({
-        where: { _id: boardId, password },
-        relations: ['boardAddress'],
-      });
+    return await this.boardRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          const fetchBoard = await transactionalEntityManager.findOne(Board, {
+            where: { _id: boardId, password },
+            relations: ['boardAddress'],
+          });
 
-      if (!fetchBoard) {
-        throw new NotFoundException('Board not found');
-      }
+          if (!fetchBoard) {
+            throw new NotFoundException('Board not found');
+          }
 
-      const { boardAddress, ...selectBoard } = fetchBoard;
-      const { title, contents, youtubeUrl, images } = updateBoardInput;
-      const { zipcode, address, addressDetail } = updateBoardInput.boardAddress;
-      const resultBoard = await this.boardRepository.save({
-        ...selectBoard,
-        title,
-        contents,
-        youtubeUrl,
-        images,
-      });
-      const resultBoardAddress = await this.boardAddressRepository.save({
-        ...boardAddress,
-        zipcode,
-        address,
-        addressDetail,
-      });
-      const board = { ...resultBoard, boardAddress: { ...resultBoardAddress } };
-      this.logger.info(`-- 게시글 수정 : ${JSON.stringify(board)} --`);
-      return board;
-    } catch (error) {
-      this.logger.error(`-- 게시글 수정 Error: ${error} --`);
-    }
+          const { boardAddress, ...selectBoard } = fetchBoard;
+          const { title, contents, youtubeUrl, images } = updateBoardInput;
+          const { zipcode, address, addressDetail } =
+            updateBoardInput.boardAddress;
+
+          const resultBoard = await transactionalEntityManager.save(Board, {
+            ...selectBoard,
+            title,
+            contents,
+            youtubeUrl,
+            images,
+          });
+
+          const resultBoardAddress = await transactionalEntityManager.save(
+            BoardAddress,
+            {
+              ...boardAddress,
+              zipcode,
+              address,
+              addressDetail,
+            },
+          );
+
+          const updatedBoard = {
+            ...resultBoard,
+            boardAddress: { ...resultBoardAddress },
+          };
+          this.logger.info(
+            `-- 게시글 수정 : ${JSON.stringify(updatedBoard)} --`,
+          );
+
+          return updatedBoard;
+        } catch (error) {
+          this.logger.error(`-- 게시글 수정 Error: ${error} --`);
+          throw error; // 에러 발생 시 트랜잭션 롤백
+        }
+      },
+    );
   }
 
   async delete(boardId: string): Promise<boolean> {

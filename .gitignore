@@ -1,5 +1,6 @@
 # config
-/src/config/
+/src/config/database.config.ts
+/src/config/jwt.secretkey.ts
 
 # compiled output
 /dist
