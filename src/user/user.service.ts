@@ -1,35 +1,54 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { User } from './entity/user.entity';
 import * as bcrypt from 'bcrypt';
 import { CreateUserInput } from './dto/createUser.input';
 import { UserPoint } from './entity/userPoint.entity';
+import * as log4js from 'log4js';
 
 @Injectable()
 export class UserService {
+  private logger = log4js.getLogger(UserService.name);
   constructor(
     @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    private userRepository: Repository<User>,
 
     @InjectRepository(UserPoint)
-    private usersPointRepository: Repository<UserPoint>,
+    private userPointRepository: Repository<UserPoint>,
   ) {}
 
   async findOne(name: string): Promise<User | undefined> {
-    return this.usersRepository.findOneBy({ name });
+    return this.userRepository.findOneBy({ name });
   }
 
   async create(createUserInput: CreateUserInput): Promise<User> {
-    const hashedPassword = await bcrypt.hash(createUserInput.password, 10);
-    const user = this.usersRepository.create({
-      ...createUserInput,
-      password: hashedPassword,
-    });
-    return this.usersRepository.save(user);
+    return await this.userRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          const userPoint = await transactionalEntityManager.save(UserPoint, {
+            amount: 0,
+          });
+          const hashedPassword = await bcrypt.hash(
+            createUserInput.password,
+            10,
+          );
+          const user = this.userRepository.create({
+            ...createUserInput,
+            password: hashedPassword,
+            _id: userPoint._id,
+          });
+          this.logger.error(`-- 유저 생성: ${JSON.stringify(user)} --`);
+          return await transactionalEntityManager.save(User, user);
+        } catch (error) {
+          this.logger.error(`-- 유저 생성 Error: ${error} --`);
+          throw error;
+        }
+      },
+    );
   }
 
   async findOneByUserEmail(email: string): Promise<User | undefined> {
-    return this.usersRepository.findOne({ where: { email } });
+    return this.userRepository.findOne({ where: { email } });
   }
 }
