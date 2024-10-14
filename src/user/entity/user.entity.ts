@@ -25,8 +25,8 @@ export class User {
   @Column()
   name: string;
 
-  @Field()
-  @Column()
+  @Field({ nullable: true })
+  @Column({ nullable: true })
   picture: string;
 
   @OneToOne(() => UserPoint, (userPoint) => userPoint.user, {

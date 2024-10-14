@@ -32,7 +32,7 @@ export class AuthService {
   async loginUser(user: Omit<User, 'password'>): Promise<Token> {
     const payload = {
       name: user.name,
-      sub: user._id,
+      _id: user._id,
       email: user.email,
     };
     const result = new Token(); //
