@@ -9,4 +9,4 @@ import { BoardAddress } from './entity/boardAddress.entity';
   imports: [TypeOrmModule.forFeature([Board, BoardAddress])],
   providers: [BoardService, BoardResolver],
 })
-export class BoardsModule {}
+export class BoardModule {}

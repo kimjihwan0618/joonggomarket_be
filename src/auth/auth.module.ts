@@ -3,13 +3,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
-import { UsersModule } from '../user/user.module';
+import { UserModule } from '../user/user.module';
 import { AuthResolver } from './auth.resolver';
 import jwtSecretkey from '@/config/jwt.secretkey';
 
 @Module({
   imports: [
-    UsersModule,
+    UserModule,
     PassportModule,
     JwtModule.register({
       secret: jwtSecretkey(),

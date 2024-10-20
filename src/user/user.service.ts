@@ -18,11 +18,7 @@ export class UserService {
     private userPointRepository: Repository<UserPoint>,
   ) {}
 
-  async findOne(name: string): Promise<User | undefined> {
-    return this.userRepository.findOneBy({ name });
-  }
-
-  async create(createUserInput: CreateUserInput): Promise<User> {
+  async createUser(createUserInput: CreateUserInput): Promise<User> {
     return await this.userRepository.manager.transaction(
       async (transactionalEntityManager: EntityManager) => {
         try {
@@ -36,9 +32,11 @@ export class UserService {
           const user = this.userRepository.create({
             ...createUserInput,
             password: hashedPassword,
+            userPoint,
             _id: userPoint._id,
           });
           this.logger.error(`-- 유저 생성: ${JSON.stringify(user)} --`);
+
           return await transactionalEntityManager.save(User, user);
         } catch (error) {
           this.logger.error(`-- 유저 생성 Error: ${error} --`);
@@ -48,7 +46,20 @@ export class UserService {
     );
   }
 
-  async findOneByUserEmail(email: string): Promise<User | undefined> {
-    return this.userRepository.findOne({ where: { email } });
+  async findOneByUserEmail(email: string): Promise<User> {
+    return this.userRepository.findOne({
+      where: { email },
+      relations: ['userPoint'],
+    });
+  }
+
+  async findById(_id: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { _id },
+      relations: ['userPoint'],
+    });
+    console.log('유저 객체 확인1---------------------------');
+    console.log(JSON.stringify(user, null, 2));
+    return user;
   }
 }

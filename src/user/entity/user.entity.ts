@@ -6,13 +6,20 @@ import {
   PrimaryGeneratedColumn,
   OneToOne,
   JoinColumn,
-  // CreateDateColumn,
 } from 'typeorm';
 import { UserPoint } from './userPoint.entity';
 
 @ObjectType()
 @Entity('user_list')
 export class User {
+  @OneToOne(() => UserPoint, (userPoint) => userPoint.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn()
+  @Field(() => UserPoint, { nullable: true })
+  userPoint: UserPoint;
+
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   _id: string;
@@ -28,14 +35,6 @@ export class User {
   @Field({ nullable: true })
   @Column({ nullable: true })
   picture: string;
-
-  @OneToOne(() => UserPoint, (userPoint) => userPoint.user, {
-    cascade: true,
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn()
-  @Field(() => UserPoint, { nullable: true })
-  userPoint: UserPoint;
 
   @HideField()
   @Column()

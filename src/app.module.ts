@@ -4,8 +4,8 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { User } from './user/entity/user.entity';
 import { Board } from './board/entity/board.entity';
-import { UsersModule } from './user/user.module';
-import { BoardsModule } from './board/board.module';
+import { UserModule } from './user/user.module';
+import { BoardModule } from './board/board.module';
 import { AuthModule } from './auth/auth.module';
 import databaseConfig from './config/database.config';
 import { BoardAddress } from './board/entity/boardAddress.entity';
@@ -29,9 +29,10 @@ const { type, host, port, username, password, database } = databaseConfig();
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
+      context: ({ req, res }) => ({ req, res }), // req와 res를 context에 추가
     }),
-    UsersModule,
-    BoardsModule,
+    UserModule,
+    BoardModule,
     AuthModule,
   ],
 })

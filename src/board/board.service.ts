@@ -77,7 +77,7 @@ export class BoardService {
     return query.getCount();
   }
 
-  fetchBoard(_id: string): Promise<Board> {
+  async fetchBoard(_id: string): Promise<Board> {
     return this.boardRepository.findOne({
       where: { _id },
       relations: ['boardAddress'],

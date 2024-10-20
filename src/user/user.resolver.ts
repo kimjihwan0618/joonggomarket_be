@@ -4,13 +4,13 @@ import { CreateUserInput } from './dto/createUser.input';
 import { User } from './entity/user.entity';
 
 @Resolver(() => User)
-export class UsersResolver {
+export class UserResolver {
   constructor(private userService: UserService) {}
 
   @Mutation(() => User)
   async createUser(
     @Args('createUserInput') createUserInput: CreateUserInput,
   ): Promise<User> {
-    return this.userService.create(createUserInput);
+    return this.userService.createUser(createUserInput);
   }
 }
