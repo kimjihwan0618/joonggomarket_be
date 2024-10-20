@@ -58,8 +58,6 @@ export class UserService {
       where: { _id },
       relations: ['userPoint'],
     });
-    console.log('유저 객체 확인1---------------------------');
-    console.log(JSON.stringify(user, null, 2));
     return user;
   }
 }
