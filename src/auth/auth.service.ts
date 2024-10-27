@@ -52,15 +52,46 @@ export class AuthService {
     return result;
   }
 
-  async logoutUser(myRefreshToken: string) {
-    if (!myRefreshToken) {
-      `-- 리프레쉬 토큰이 유효하지 않습니다. : myRefreshToken : ${myRefreshToken} --`;
+  async restoreAccessToken(
+    myRefreshToken: string,
+  ): Promise<{ accessToken: string; myRefreshToken: string }> {
+    try {
+      const user = this.jwtService.verify(myRefreshToken);
+      const payload = {
+        name: user.name,
+        _id: user._id,
+        email: user.email,
+      };
+
+      // 새로운 Access Token과 Refresh Token 생성
+      const result = {
+        accessToken: this.jwtService.sign({ ...payload, expiresIn: '1h' }),
+        myRefreshToken: this.jwtService.sign({ ...payload, expiresIn: '7d' }),
+      };
+
+      return result;
+    } catch (error) {
+      this.logger.error(
+        `-- refreshToken이 유효하지 않습니다. : refreshToken : ${myRefreshToken} --`,
+      );
     }
-    // Redis에 토큰을 블랙리스트로 추가
-    const payload = this.jwtService.decode(myRefreshToken) as any;
-    const ttl = payload.exp - Math.floor(Date.now() / 1000); // 만료 시간까지 남은 시간 계산
-    await this.redisService
-      .getOrThrow()
-      .set(`${myRefreshToken}`, 'true', 'EX', ttl);
+  }
+
+  async logoutUser(accessToken: string): Promise<boolean> {
+    try {
+      // Redis에 토큰을 블랙리스트로 추가
+      const payload = this.jwtService.decode(accessToken) as any;
+      const ttl = payload.exp - Math.floor(Date.now() / 1000); // 만료 시간까지 남은 시간 계산
+      await this.redisService
+        .getOrThrow()
+        .set(`${accessToken}`, 'true', 'EX', ttl);
+      return true;
+    } catch (error) {}
+    if (!accessToken) {
+      this.logger.error(
+        `-- accessToken이 유효하지 않습니다. : accessToken : ${accessToken} --`,
+      );
+      return false;
+    }
   }
 }
