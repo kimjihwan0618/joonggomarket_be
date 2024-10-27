@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import databaseConfig from './config/database.config';
 import { BoardAddress } from './board/entity/boardAddress.entity';
 import { UserPoint } from './user/entity/userPoint.entity';
+import { RedisModule } from '@liaoliaots/nestjs-redis';
 
 const { type, host, port, username, password, database } = databaseConfig();
 
@@ -30,6 +31,12 @@ const { type, host, port, username, password, database } = databaseConfig();
       driver: ApolloDriver,
       autoSchemaFile: true,
       context: ({ req, res }) => ({ req, res }), // req와 res를 context에 추가
+    }),
+    RedisModule.forRoot({
+      config: {
+        host: '127.0.0.1', // 로컬 Redis 서버 주소
+        port: 6379, // Redis 서버 포트
+      },
     }),
     UserModule,
     BoardModule,

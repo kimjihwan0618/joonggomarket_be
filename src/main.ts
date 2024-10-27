@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as log4js from 'log4js';
 import log4jsConfig from '@/config/log4js.config';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,6 +12,7 @@ async function bootstrap() {
     credentials: true, // 쿠키와 인증 정보를 허용할지 여부
   });
   log4js.configure(log4jsConfig as log4js.Configuration);
+  app.use(cookieParser());
 
   const logger = log4js.getLogger();
   app.useLogger(logger);
