@@ -11,8 +11,12 @@ export class BoardComment {
   _id: string;
 
   @Field()
-  @Column({ nullable: true })
+  @Column()
   writer: string;
+
+  @Field()
+  @Column()
+  password: string;
 
   @Field()
   @Column()

@@ -5,6 +5,8 @@ import { GraphQLDateTime } from 'graphql-scalars';
 import { CreateBoardInput } from './dto/createBoard.input';
 import { UpdateBoardInput } from './dto/updateBoard.input';
 import { Int } from '@nestjs/graphql';
+import { CreateBoardCommentInput } from './dto/createBoardComment.input';
+import { BoardComment } from './entity/boardComment.entity';
 
 @Resolver(() => Board)
 export class BoardResolver {
@@ -67,5 +69,22 @@ export class BoardResolver {
     @Args('boardId', { type: () => ID }) boardId: string,
   ): Promise<boolean> {
     return this.boardService.deleteBoard(boardId);
+  }
+
+  @Mutation(() => BoardComment)
+  async createBoardComment(
+    @Args('createBoardCommentInput')
+    createBoardCommentInput: CreateBoardCommentInput,
+    @Args('boardId', { type: () => ID }) id: string,
+  ): Promise<BoardComment> {
+    return this.boardService.createBoardComment(createBoardCommentInput, id);
+  }
+
+  @Query(() => [BoardComment])
+  async fetchBoardComments(
+    @Args('page', { type: () => Int, nullable: true }) page: number,
+    @Args('boardId', { type: () => ID }) id: string,
+  ): Promise<BoardComment[]> {
+    return this.boardService.fetchBoardComments(page, id);
   }
 }

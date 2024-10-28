@@ -23,7 +23,10 @@ export class Board {
   @Field(() => BoardAddress, { nullable: true })
   boardAddress: BoardAddress;
 
-  @OneToMany(() => BoardComment, (comment) => comment.board)
+  @OneToMany(() => BoardComment, (comment) => comment.board, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   @Field(() => [BoardComment], { nullable: true })
   comments: BoardComment[];
 

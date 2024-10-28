@@ -6,6 +6,9 @@ import { CreateBoardInput } from './dto/createBoard.input';
 import { UpdateBoardInput } from './dto/updateBoard.input';
 import { BoardAddress } from './entity/boardAddress.entity';
 import * as log4js from 'log4js';
+import { CreateBoardCommentInput } from './dto/createBoardComment.input';
+import { BoardComment } from './entity/boardComment.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class BoardService {
@@ -16,6 +19,9 @@ export class BoardService {
 
     @InjectRepository(BoardAddress)
     private boardAddressRepository: Repository<BoardAddress>,
+
+    @InjectRepository(BoardComment)
+    private boardCommentRepository: Repository<BoardComment>,
   ) {}
 
   async fetchBoards(
@@ -131,7 +137,6 @@ export class BoardService {
           const { title, contents, youtubeUrl, images } = updateBoardInput;
           const { zipcode, address, addressDetail } =
             updateBoardInput.boardAddress;
-
           const resultBoard = await transactionalEntityManager.save(Board, {
             ...selectBoard,
             title,
@@ -139,7 +144,6 @@ export class BoardService {
             youtubeUrl,
             images,
           });
-
           const resultBoardAddress = await transactionalEntityManager.save(
             BoardAddress,
             {
@@ -149,7 +153,6 @@ export class BoardService {
               addressDetail,
             },
           );
-
           const updatedBoard = {
             ...resultBoard,
             boardAddress: { ...resultBoardAddress },
@@ -157,7 +160,6 @@ export class BoardService {
           this.logger.info(
             `-- 게시글 수정 : ${JSON.stringify(updatedBoard)} --`,
           );
-
           return updatedBoard;
         } catch (error) {
           this.logger.error(`-- 게시글 수정 Error: ${error} --`);
@@ -176,5 +178,63 @@ export class BoardService {
     }
     await this.boardAddressRepository.delete(boardId);
     return true;
+  }
+
+  async createBoardComment(
+    createBoardCommentInput: CreateBoardCommentInput,
+    boardId: string,
+  ): Promise<BoardComment> {
+    return await this.boardCommentRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          const hashedPassword = await bcrypt.hash(
+            createBoardCommentInput.password,
+            10,
+          );
+          const board = await transactionalEntityManager.findOne(Board, {
+            where: { _id: boardId },
+          });
+          if (!board) {
+            throw new Error('게시글을 찾을 수 없습니다.');
+          }
+
+          const boardComment = this.boardCommentRepository.create({
+            ...createBoardCommentInput,
+            password: hashedPassword,
+            board,
+          });
+          this.logger.info(
+            `-- 게시글 댓글 생성 : ${JSON.stringify(boardComment)} --`,
+          );
+
+          return await transactionalEntityManager.save(
+            BoardComment,
+            boardComment,
+          );
+        } catch (error) {
+          this.logger.error(`-- 게시글 댓글 생성 Error: ${error} --`);
+          throw error;
+        }
+      },
+    );
+  }
+
+  async fetchBoardComments(
+    page: number,
+    boardId: string,
+  ): Promise<BoardComment[]> {
+    const query =
+      this.boardCommentRepository.createQueryBuilder('board_comment');
+
+    if (boardId) {
+      query.andWhere('board_comment.board_id = :boardId', {
+        boardId: `${boardId}`,
+      });
+    }
+
+    const limit = 10;
+    const currentPage = page || 1;
+    query.skip((currentPage - 1) * limit).take(limit);
+    return query.getMany();
   }
 }
