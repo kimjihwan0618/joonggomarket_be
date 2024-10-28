@@ -1,4 +1,3 @@
-import jwtSecretkey from '@/config/jwt.secretkey';
 import { User } from '@/user/entity/user.entity';
 import { UserService } from '@/user/user.service';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
@@ -11,7 +10,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: jwtSecretkey(), // .env 파일에 저장하는 것이 좋습니다
+      secretOrKey: process.env.JWT_SECRETKEY,
     });
   }
 

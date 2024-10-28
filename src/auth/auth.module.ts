@@ -5,14 +5,13 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { UserModule } from '../user/user.module';
 import { AuthResolver } from './auth.resolver';
-import jwtSecretkey from '@/config/jwt.secretkey';
 
 @Module({
   imports: [
     UserModule,
     PassportModule,
     JwtModule.register({
-      secret: jwtSecretkey(),
+      secret: process.env.JWT_SECRETKEY,
       signOptions: { expiresIn: '1h' }, // 토큰 유효기간 설정
     }),
   ],

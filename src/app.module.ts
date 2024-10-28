@@ -7,22 +7,35 @@ import { Board } from './board/entity/board.entity';
 import { UserModule } from './user/user.module';
 import { BoardModule } from './board/board.module';
 import { AuthModule } from './auth/auth.module';
-import databaseConfig from './config/database.config';
 import { BoardAddress } from './board/entity/boardAddress.entity';
 import { UserPoint } from './user/entity/userPoint.entity';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
-
-const { type, host, port, username, password, database } = databaseConfig();
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [],
+      cache: true,
+      envFilePath: [
+        process.env.NODE_ENV === 'production'
+          ? 'src/config/env/.production.env'
+          : 'src/config/env/.development.env',
+      ],
+    }),
     TypeOrmModule.forRoot({
-      type,
-      host,
-      port,
-      username,
-      password,
-      database,
+      type: process.env.DB_TYPE as
+        | 'mysql'
+        | 'mariadb'
+        | 'postgres'
+        | 'sqlite'
+        | 'mssql',
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
       entities: [User, Board, BoardAddress, UserPoint],
       synchronize: true,
       logging: true,
@@ -34,8 +47,8 @@ const { type, host, port, username, password, database } = databaseConfig();
     }),
     RedisModule.forRoot({
       config: {
-        host: '127.0.0.1', // 로컬 Redis 서버 주소
-        port: 6379, // Redis 서버 포트
+        host: process.env.REDIS_HOST, // 로컬 Redis 서버 주소
+        port: Number(process.env.REDIS_PORT), // Redis 서버 포트
       },
     }),
     UserModule,
