@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, HideField, ID, ObjectType } from '@nestjs/graphql';
 import { GraphQLDateTime } from 'graphql-scalars';
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { Board } from './board.entity';
@@ -14,6 +14,7 @@ export class BoardComment {
   @Column()
   writer: string;
 
+  @HideField()
   @Field()
   @Column()
   password: string;
@@ -26,8 +27,11 @@ export class BoardComment {
   @Column('float')
   rating: number;
 
-  @ManyToOne(() => Board, (board) => board.comments, { nullable: false })
-  @Field(() => Board)
+  @HideField()
+  @ManyToOne(() => Board, (board) => board.comments, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   board: Board;
 
   @Field(() => GraphQLDateTime)

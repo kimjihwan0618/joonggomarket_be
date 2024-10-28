@@ -7,6 +7,7 @@ import { UpdateBoardInput } from './dto/updateBoard.input';
 import { Int } from '@nestjs/graphql';
 import { CreateBoardCommentInput } from './dto/createBoardComment.input';
 import { BoardComment } from './entity/boardComment.entity';
+import { UpdateBoardCommentInput } from './dto/updateBoardComment.input';
 
 @Resolver(() => Board)
 export class BoardResolver {
@@ -59,7 +60,7 @@ export class BoardResolver {
   async updateBoard(
     @Args('updateBoardInput') updateBoardInput: UpdateBoardInput,
     @Args('boardId', { type: () => ID }) boardId: string,
-    @Args('password') password: string,
+    @Args('password', { type: () => String, nullable: true }) password: string,
   ): Promise<Board> {
     return this.boardService.updateBoard(updateBoardInput, boardId, password);
   }
@@ -86,5 +87,19 @@ export class BoardResolver {
     @Args('boardId', { type: () => ID }) id: string,
   ): Promise<BoardComment[]> {
     return this.boardService.fetchBoardComments(page, id);
+  }
+
+  @Mutation(() => BoardComment)
+  async updateBoardComment(
+    @Args('updateBoardCommentInput')
+    updateBoardCommentInput: UpdateBoardCommentInput,
+    @Args('password', { type: () => String, nullable: true }) password: string,
+    @Args('boardCommentId', { type: () => ID }) id: string,
+  ): Promise<BoardComment> {
+    return this.boardService.updateBoardComment(
+      updateBoardCommentInput,
+      password,
+      id,
+    );
   }
 }

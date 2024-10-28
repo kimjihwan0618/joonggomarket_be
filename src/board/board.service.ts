@@ -8,7 +8,7 @@ import { BoardAddress } from './entity/boardAddress.entity';
 import * as log4js from 'log4js';
 import { CreateBoardCommentInput } from './dto/createBoardComment.input';
 import { BoardComment } from './entity/boardComment.entity';
-import * as bcrypt from 'bcrypt';
+import { UpdateBoardCommentInput } from './dto/updateBoardComment.input';
 
 @Injectable()
 export class BoardService {
@@ -187,10 +187,6 @@ export class BoardService {
     return await this.boardCommentRepository.manager.transaction(
       async (transactionalEntityManager: EntityManager) => {
         try {
-          const hashedPassword = await bcrypt.hash(
-            createBoardCommentInput.password,
-            10,
-          );
           const board = await transactionalEntityManager.findOne(Board, {
             where: { _id: boardId },
           });
@@ -200,7 +196,6 @@ export class BoardService {
 
           const boardComment = this.boardCommentRepository.create({
             ...createBoardCommentInput,
-            password: hashedPassword,
             board,
           });
           this.logger.info(
@@ -236,5 +231,44 @@ export class BoardService {
     const currentPage = page || 1;
     query.skip((currentPage - 1) * limit).take(limit);
     return query.getMany();
+  }
+
+  async updateBoardComment(
+    updateBoardCommentInput: UpdateBoardCommentInput,
+    password: string,
+    boardCommentId: string,
+  ): Promise<BoardComment> {
+    return await this.boardCommentRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          const fetchBoardComment = await transactionalEntityManager.findOne(
+            BoardComment,
+            {
+              where: { _id: boardCommentId, password },
+            },
+          );
+
+          if (!fetchBoardComment) {
+            throw new NotFoundException('Board Comment not found');
+          }
+
+          const { contents, rating } = updateBoardCommentInput;
+          const updatedBoardComment = {
+            ...fetchBoardComment,
+            contents,
+            rating,
+            updatedAt: new Date(),
+          };
+          const result = await transactionalEntityManager.save(
+            BoardComment,
+            updatedBoardComment,
+          );
+          return result;
+        } catch (error) {
+          this.logger.error(`-- 게시글 댓글 수정 Error: ${error} --`);
+          throw error;
+        }
+      },
+    );
   }
 }
