@@ -170,14 +170,13 @@ export class BoardService {
   }
 
   async deleteBoard(boardId: string): Promise<boolean> {
-    const board = await this.boardAddressRepository.findOne({
-      where: { _id: boardId },
-    });
-    if (!board) {
-      throw new NotFoundException('Board not found');
+    try {
+      await this.boardAddressRepository.delete(boardId);
+      return true;
+    } catch (error) {
+      this.logger.error(`-- 게시글 삭제 Error: ${error} --`);
+      return false;
     }
-    await this.boardAddressRepository.delete(boardId);
-    return true;
   }
 
   async createBoardComment(
@@ -270,5 +269,24 @@ export class BoardService {
         }
       },
     );
+  }
+
+  async deleteBoardComment(
+    boardCommentId: string,
+    password: string,
+  ): Promise<boolean> {
+    try {
+      const board = await this.boardCommentRepository.findOne({
+        where: { _id: boardCommentId, password },
+      });
+      if (!board) {
+        throw new NotFoundException('Board not found');
+      }
+      await this.boardCommentRepository.delete(boardCommentId);
+      return true;
+    } catch (error) {
+      this.logger.error(`-- 게시글 댓글 삭제 Error: ${error} --`);
+      return false;
+    }
   }
 }

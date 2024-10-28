@@ -102,4 +102,12 @@ export class BoardResolver {
       id,
     );
   }
+
+  @Mutation(() => Boolean)
+  async deleteBoardComment(
+    @Args('boardCommentId', { type: () => ID }) boardCommentId: string,
+    @Args('password', { type: () => String, nullable: true }) password: string,
+  ): Promise<boolean> {
+    return this.boardService.deleteBoardComment(boardCommentId, password);
+  }
 }
