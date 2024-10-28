@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { Board } from './entity/board.entity';
@@ -169,8 +173,18 @@ export class BoardService {
     );
   }
 
-  async deleteBoard(boardId: string): Promise<boolean> {
+  async deleteBoard(boardId: string, password: string): Promise<boolean> {
     try {
+      if (!password) {
+        throw new BadRequestException('Password is required');
+      }
+      const board = await this.boardRepository.findOne({
+        where: { _id: boardId, password },
+      });
+      if (!board) {
+        throw new NotFoundException('Board not found');
+      }
+
       await this.boardAddressRepository.delete(boardId);
       return true;
     } catch (error) {

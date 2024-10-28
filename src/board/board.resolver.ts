@@ -68,8 +68,9 @@ export class BoardResolver {
   @Mutation(() => Boolean)
   async deleteBoard(
     @Args('boardId', { type: () => ID }) boardId: string,
+    @Args('password', { type: () => String, nullable: true }) password: string,
   ): Promise<boolean> {
-    return this.boardService.deleteBoard(boardId);
+    return this.boardService.deleteBoard(boardId, password);
   }
 
   @Mutation(() => BoardComment)
