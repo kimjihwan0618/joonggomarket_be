@@ -6,9 +6,11 @@ import {
   PrimaryGeneratedColumn,
   OneToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { BoardAddress } from './boardAddress.entity';
 import { Int } from '@nestjs/graphql';
+import { BoardComment } from './boardComment.entity';
 
 @ObjectType()
 @Entity('board_list')
@@ -20,6 +22,10 @@ export class Board {
   @JoinColumn()
   @Field(() => BoardAddress, { nullable: true })
   boardAddress: BoardAddress;
+
+  @OneToMany(() => BoardComment, (comment) => comment.board)
+  @Field(() => [BoardComment], { nullable: true })
+  comments: BoardComment[];
 
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
@@ -37,9 +43,9 @@ export class Board {
   @Column()
   contents: string;
 
-  @Field({ nullable: true }) // GraphQL에서 선택적 필드로 설정
-  @Column({ nullable: true }) // TypeORM에서 NULL 값을 허용하도록 설정
-  youtubeUrl: string; // 선택적 필드
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  youtubeUrl: string;
 
   @Field(() => Int)
   @Column({ default: 0 })
@@ -47,7 +53,7 @@ export class Board {
 
   @Field(() => Int)
   @Column({ default: 0 })
-  disklikeCount: number;
+  dislikeCount: number;
 
   @Field(() => [String], { nullable: true })
   @Column('text', { array: true, nullable: true })

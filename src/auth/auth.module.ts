@@ -11,7 +11,7 @@ import { AuthResolver } from './auth.resolver';
     UserModule,
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRETKEY,
+      secret: 'markets_jwt_secret_key',
       signOptions: { expiresIn: '1h' }, // 토큰 유효기간 설정
     }),
   ],

@@ -6,8 +6,9 @@ import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
   app.enableCors({
-    origin: ['http://localhost:3001'], // 허용할 도메인 배열
+    origin: process.env.ALLOWED_ORIGINS.split(','), // CORS 허용할 도메인
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // 허용할 HTTP 메서드
     credentials: true, // 쿠키와 인증 정보를 허용할지 여부
   });
@@ -17,6 +18,6 @@ async function bootstrap() {
   const logger = log4js.getLogger();
   app.useLogger(logger);
 
-  await app.listen(3456);
+  await app.listen(process.env.APP_PORT);
 }
 bootstrap();

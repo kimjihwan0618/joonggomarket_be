@@ -11,18 +11,15 @@ import { BoardAddress } from './board/entity/boardAddress.entity';
 import { UserPoint } from './user/entity/userPoint.entity';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { ConfigModule } from '@nestjs/config';
+import { BoardComment } from './board/entity/boardComment.entity';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       load: [],
-      cache: true,
-      envFilePath: [
-        process.env.NODE_ENV === 'production'
-          ? 'src/config/env/.production.env'
-          : 'src/config/env/.development.env',
-      ],
+      // cache: true,
+      envFilePath: `src/config/env/.${process.env.NODE_ENV}.env`,
     }),
     TypeOrmModule.forRoot({
       type: process.env.DB_TYPE as
@@ -36,14 +33,14 @@ import { ConfigModule } from '@nestjs/config';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [User, Board, BoardAddress, UserPoint],
+      entities: [Board, BoardAddress, BoardComment, User, UserPoint],
       synchronize: true,
       logging: true,
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
-      context: ({ req, res }) => ({ req, res }), // req와 res를 context에 추가
+      context: ({ req, res }) => ({ req, res }),
     }),
     RedisModule.forRoot({
       config: {

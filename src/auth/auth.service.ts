@@ -71,9 +71,11 @@ export class AuthService {
 
       return result;
     } catch (error) {
-      this.logger.error(
-        `-- refreshToken이 유효하지 않습니다. : refreshToken : ${myRefreshToken} --`,
-      );
+      if (myRefreshToken !== undefined) {
+        this.logger.error(
+          `-- refreshToken이 유효하지 않습니다. : refreshToken : ${myRefreshToken} --`,
+        );
+      }
     }
   }
 
