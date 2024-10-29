@@ -12,6 +12,7 @@ import { UserPoint } from './services/user/entity/userPoint.entity';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { ConfigModule } from '@nestjs/config';
 import { BoardComment } from './services/board/entity/boardComment.entity';
+import { FileManager } from './services/fileManager/entity/fileManager.entity';
 
 @Module({
   imports: [
@@ -33,7 +34,14 @@ import { BoardComment } from './services/board/entity/boardComment.entity';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [Board, BoardAddress, BoardComment, User, UserPoint],
+      entities: [
+        Board,
+        BoardAddress,
+        BoardComment,
+        User,
+        UserPoint,
+        FileManager,
+      ],
       synchronize: true,
       logging: true,
     }),

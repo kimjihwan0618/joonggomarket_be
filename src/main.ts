@@ -3,9 +3,11 @@ import { AppModule } from './app.module';
 import * as log4js from 'log4js';
 import log4jsConfig from '@/config/log4js.config';
 import * as cookieParser from 'cookie-parser';
+import { graphqlUploadExpress } from 'graphql-upload';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
 
   app.enableCors({
     origin: process.env.ALLOWED_ORIGINS.split(','), // CORS 허용할 도메인
