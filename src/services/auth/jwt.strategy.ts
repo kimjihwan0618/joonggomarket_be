@@ -1,5 +1,5 @@
-import { User } from '@/user/entity/user.entity';
-import { UserService } from '@/user/user.service';
+import { User } from '@/services/user/entity/user.entity';
+import { UserService } from '@/services/user/user.service';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';

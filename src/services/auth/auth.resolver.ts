@@ -3,7 +3,7 @@ import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
 import { Token } from './dto/token.type';
 import { Response, Request } from 'express';
-import { User } from '@/user/entity/user.entity';
+import { User } from '@/services/user/entity/user.entity';
 import { GqlAuthGuard } from './gql-auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';

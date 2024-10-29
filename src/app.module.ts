@@ -2,16 +2,16 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-import { User } from './user/entity/user.entity';
-import { Board } from './board/entity/board.entity';
-import { UserModule } from './user/user.module';
-import { BoardModule } from './board/board.module';
-import { AuthModule } from './auth/auth.module';
-import { BoardAddress } from './board/entity/boardAddress.entity';
-import { UserPoint } from './user/entity/userPoint.entity';
+import { User } from './services/user/entity/user.entity';
+import { Board } from './services/board/entity/board.entity';
+import { UserModule } from './services/user/user.module';
+import { BoardModule } from './services/board/board.module';
+import { AuthModule } from './services/auth/auth.module';
+import { BoardAddress } from './services/board/entity/boardAddress.entity';
+import { UserPoint } from './services/user/entity/userPoint.entity';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { ConfigModule } from '@nestjs/config';
-import { BoardComment } from './board/entity/boardComment.entity';
+import { BoardComment } from './services/board/entity/boardComment.entity';
 
 @Module({
   imports: [
