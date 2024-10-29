@@ -7,5 +7,6 @@ import { FileManagerResolver } from './fileManager.resolver';
 @Module({
   imports: [TypeOrmModule.forFeature([FileManager])],
   providers: [FileManagerService, FileManagerResolver],
+  exports: [FileManagerService],
 })
 export class FileManagerModule {}

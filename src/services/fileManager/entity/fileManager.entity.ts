@@ -1,12 +1,6 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { GraphQLDateTime } from 'graphql-scalars';
 
 @ObjectType()
 @Entity()
@@ -27,15 +21,15 @@ export class FileManager {
   @Column({ default: true })
   isUsed: boolean;
 
-  @Field()
-  @CreateDateColumn()
+  @Field(() => GraphQLDateTime)
+  @Column({ type: 'timestamp', default: () => 'NOW()' })
   createdAt: Date;
 
-  @Field()
-  @UpdateDateColumn()
+  @Field(() => GraphQLDateTime, { nullable: true })
+  @Column({ type: 'timestamp', nullable: true, default: null })
   updatedAt: Date;
 
-  @Field({ nullable: true })
-  @DeleteDateColumn()
-  deletedAt?: Date;
+  @Field(() => GraphQLDateTime, { nullable: true })
+  @Column({ type: 'timestamp', nullable: true, default: null })
+  deletedAt: Date;
 }

@@ -13,6 +13,9 @@ import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { ConfigModule } from '@nestjs/config';
 import { BoardComment } from './services/board/entity/boardComment.entity';
 import { FileManager } from './services/fileManager/entity/fileManager.entity';
+import { FileManagerModule } from './services/fileManager/fileManager.module';
+import { FileManagerResolver } from './services/fileManager/fileManager.resolver';
+import { FileManagerService } from './services/fileManager/fileManager.service';
 
 @Module({
   imports: [
@@ -59,6 +62,7 @@ import { FileManager } from './services/fileManager/entity/fileManager.entity';
     UserModule,
     BoardModule,
     AuthModule,
+    FileManagerModule,
   ],
 })
 export class AppModule {}

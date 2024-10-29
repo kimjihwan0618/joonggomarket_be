@@ -1,7 +1,7 @@
 import { Resolver, Mutation, Args } from '@nestjs/graphql';
 import { FileManagerService } from './fileManager.service';
 import { FileManager } from './entity/fileManager.entity';
-import { FileUpload, Upload } from 'graphql-upload';
+import { GraphQLUpload, Upload } from 'graphql-upload';
 
 @Resolver(() => FileManager)
 export class FileManagerResolver {
@@ -9,7 +9,7 @@ export class FileManagerResolver {
 
   @Mutation(() => FileManager)
   async uploadFile(
-    @Args('file', { type: () => Upload }) file: FileUpload,
+    @Args('file', { type: () => GraphQLUpload }) file: Upload,
   ): Promise<FileManager> {
     return this.fileManagerService.uploadFile(file);
   }
