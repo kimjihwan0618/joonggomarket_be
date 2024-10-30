@@ -44,8 +44,8 @@ export class User {
   @Column({ type: 'timestamp', default: () => 'NOW()' })
   createdAt: Date;
 
-  @Field(() => GraphQLDateTime, { nullable: true })
-  @Column({ type: 'timestamp', nullable: true, default: null })
+  @Field(() => GraphQLDateTime)
+  @Column({ type: 'timestamp', default: () => 'NOW()' })
   updatedAt: Date;
 
   @Field(() => GraphQLDateTime, { nullable: true })
