@@ -67,11 +67,11 @@ export class Board {
   password: string;
 
   @Field(() => GraphQLDateTime)
-  @Column({ type: 'timestamp', default: () => 'NOW()' })
+  @Column({ type: 'timestamptz', default: () => 'NOW()' })
   createdAt: Date;
 
   @Field(() => GraphQLDateTime)
-  @Column({ type: 'timestamp', default: () => 'NOW()' })
+  @Column({ type: 'timestamptz', default: () => 'NOW()' })
   updatedAt: Date;
 
   @Field(() => GraphQLDateTime, { nullable: true })

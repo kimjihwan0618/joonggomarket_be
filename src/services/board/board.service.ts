@@ -134,7 +134,7 @@ export class BoardService {
           });
 
           if (!fetchBoard) {
-            throw new NotFoundException('Board not found');
+            throw new NotFoundException('비밀번호가 잘못되었습니다.');
           }
 
           const { boardAddress, ...selectBoard } = fetchBoard;
@@ -147,10 +147,12 @@ export class BoardService {
             contents,
             youtubeUrl,
             images,
+            updatedAt: new Date(),
           });
           const resultBoardAddress = await transactionalEntityManager.save(
             BoardAddress,
             {
+              //
               ...boardAddress,
               zipcode,
               address,
