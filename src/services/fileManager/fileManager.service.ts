@@ -55,7 +55,7 @@ export class FileManagerService {
 
           // 파일 정보 생성
           const fileManager = new FileManager();
-          fileManager.url = s3Path;
+          fileManager.url = `/${s3Path}`;
           fileManager.size = buffer.length; // 파일 크기
           fileManager.isUsed = true;
 
