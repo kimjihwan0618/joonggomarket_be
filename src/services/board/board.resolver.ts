@@ -111,4 +111,18 @@ export class BoardResolver {
   ): Promise<boolean> {
     return this.boardService.deleteBoardComment(boardCommentId, password);
   }
+
+  @Mutation(() => Int)
+  async likeBoard(
+    @Args('boardId', { type: () => ID }) id: string,
+  ): Promise<number> {
+    return this.boardService.likeBoard(id);
+  }
+
+  @Mutation(() => Int)
+  async dislikeBoard(
+    @Args('boardId', { type: () => ID }) id: string,
+  ): Promise<number> {
+    return this.boardService.dislikeBoard(id);
+  }
 }

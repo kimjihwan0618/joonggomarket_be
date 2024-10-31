@@ -342,4 +342,68 @@ export class BoardService {
       return false;
     }
   }
+
+  async likeBoard(boardId: string): Promise<number> {
+    return await this.boardRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          const fetchBoard = await transactionalEntityManager.findOne(Board, {
+            where: { _id: boardId },
+          });
+
+          if (!fetchBoard) {
+            throw new NotFoundException(
+              '게시글 좋아요가 정상적으로 처리되지 않았습니다.',
+            );
+          }
+
+          const { ...selectBoard } = fetchBoard;
+          const resultBoard = await transactionalEntityManager.save(Board, {
+            ...selectBoard,
+            likeCount: selectBoard.likeCount + 1,
+          });
+
+          this.logger.info(
+            `-- 게시글 좋아요 likeBoard ${resultBoard._id}: ${resultBoard.likeCount} --`,
+          );
+          return resultBoard.likeCount;
+        } catch (error) {
+          this.logger.error(`-- 게시글 수정 likeBoard Error: ${error} --`);
+          throw error;
+        }
+      },
+    );
+  }
+
+  async dislikeBoard(boardId: string): Promise<number> {
+    return await this.boardRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          const fetchBoard = await transactionalEntityManager.findOne(Board, {
+            where: { _id: boardId },
+          });
+
+          if (!fetchBoard) {
+            throw new NotFoundException(
+              '게시글 싫어요가 정상적으로 처리되지 않았습니다.',
+            );
+          }
+
+          const { ...selectBoard } = fetchBoard;
+          const resultBoard = await transactionalEntityManager.save(Board, {
+            ...selectBoard,
+            dislikeCount: selectBoard.dislikeCount + 1,
+          });
+
+          this.logger.info(
+            `-- 게시글 좋아요 likeBoard ${resultBoard._id}: ${resultBoard.dislikeCount} --`,
+          );
+          return resultBoard.dislikeCount;
+        } catch (error) {
+          this.logger.error(`-- 게시글 수정 likeBoard Error: ${error} --`);
+          throw error;
+        }
+      },
+    );
+  }
 }
