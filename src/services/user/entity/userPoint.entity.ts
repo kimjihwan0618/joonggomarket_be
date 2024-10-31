@@ -6,11 +6,6 @@ import { User } from './user.entity';
 @ObjectType()
 @Entity('user_point')
 export class UserPoint {
-  @OneToOne(() => User, (user) => user.userPoint, {
-    onDelete: 'CASCADE',
-  })
-  user: User;
-
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   _id: string;
@@ -22,4 +17,9 @@ export class UserPoint {
   @Field(() => GraphQLDateTime, { nullable: true })
   @Column({ type: 'timestamp', nullable: true, default: null })
   updatedAt: Date;
+
+  @OneToOne(() => User, (user) => user.userPoint, {
+    onDelete: 'CASCADE',
+  })
+  user: User;
 }

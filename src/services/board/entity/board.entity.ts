@@ -15,21 +15,6 @@ import { BoardComment } from './boardComment.entity';
 @ObjectType()
 @Entity('board_list')
 export class Board {
-  @OneToOne(() => BoardAddress, (boardAddress) => boardAddress.board, {
-    cascade: true,
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn()
-  @Field(() => BoardAddress, { nullable: true })
-  boardAddress: BoardAddress;
-
-  @OneToMany(() => BoardComment, (comment) => comment.board, {
-    cascade: true,
-    onDelete: 'CASCADE',
-  })
-  @Field(() => [BoardComment], { nullable: true })
-  comments: BoardComment[];
-
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   _id: string;
@@ -77,4 +62,19 @@ export class Board {
   @Field(() => GraphQLDateTime, { nullable: true })
   @Column({ type: 'timestamp', nullable: true, default: null })
   deletedAt: Date;
+
+  @OneToOne(() => BoardAddress, (boardAddress) => boardAddress.board, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn()
+  @Field(() => BoardAddress, { nullable: true })
+  boardAddress: BoardAddress;
+
+  @OneToMany(() => BoardComment, (comment) => comment.board, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  @Field(() => [BoardComment], { nullable: true })
+  comments: BoardComment[];
 }

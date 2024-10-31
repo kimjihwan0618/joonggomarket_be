@@ -5,11 +5,6 @@ import { Board } from './board.entity';
 @ObjectType()
 @Entity('board_address')
 export class BoardAddress {
-  @OneToOne(() => Board, (board) => board.boardAddress, {
-    onDelete: 'CASCADE',
-  })
-  board: Board;
-
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   _id: string;
@@ -25,4 +20,9 @@ export class BoardAddress {
   @Field({ nullable: true })
   @Column({ nullable: true })
   addressDetail: string;
+
+  @OneToOne(() => Board, (board) => board.boardAddress, {
+    onDelete: 'CASCADE',
+  })
+  board: Board;
 }

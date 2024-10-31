@@ -1,31 +1,29 @@
-import { Field, HideField, ID, ObjectType } from '@nestjs/graphql';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Field, HideField, ID, Int, ObjectType } from '@nestjs/graphql';
 import { GraphQLDateTime } from 'graphql-scalars';
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
-import { Board } from './board.entity';
+import { User } from '@/services/user/entity/user.entity';
 
 @ObjectType()
-@Entity('board_comment')
-export class BoardComment {
+@Entity()
+export class PointTransaction {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   _id: string;
 
-  @Field()
-  @Column()
-  writer: string;
+  @Field(() => ID)
+  impUid: string;
 
-  @HideField()
-  @Field()
+  @Field(() => Int)
   @Column()
-  password: string;
+  amount: number;
 
-  @Field()
+  @Field(() => Int)
   @Column()
-  contents: string;
+  balance: number;
 
   @Field()
-  @Column('float')
-  rating: number;
+  @Column()
+  status: string; // 충전, 구매, 판매
 
   @Field(() => GraphQLDateTime)
   @Column({ type: 'timestamp', default: () => 'NOW()' })
@@ -40,9 +38,9 @@ export class BoardComment {
   deletedAt: Date;
 
   @HideField()
-  @ManyToOne(() => Board, (board) => board.comments, {
+  @ManyToOne(() => User, (user) => user.pointTransaction, {
     nullable: false,
     onDelete: 'CASCADE',
   })
-  board: Board;
+  user: User;
 }

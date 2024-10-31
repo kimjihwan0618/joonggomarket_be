@@ -6,20 +6,14 @@ import {
   PrimaryGeneratedColumn,
   OneToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { UserPoint } from './userPoint.entity';
+import { PointTransaction } from '@/services/pointTransaction/entity/pointTransaction.entity';
 
 @ObjectType()
 @Entity('user_list')
 export class User {
-  @OneToOne(() => UserPoint, (userPoint) => userPoint.user, {
-    cascade: true,
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn()
-  @Field(() => UserPoint, { nullable: true })
-  userPoint: UserPoint;
-
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   _id: string;
@@ -51,4 +45,23 @@ export class User {
   @Field(() => GraphQLDateTime, { nullable: true })
   @Column({ type: 'timestamp', nullable: true, default: null })
   deletedAt: Date;
+
+  @OneToMany(
+    () => PointTransaction,
+    (pointTransaction) => pointTransaction.user,
+    {
+      cascade: true,
+      onDelete: 'CASCADE',
+    },
+  )
+  @Field(() => [PointTransaction], { nullable: true })
+  pointTransaction: PointTransaction[];
+
+  @OneToOne(() => UserPoint, (userPoint) => userPoint.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn()
+  @Field(() => UserPoint, { nullable: true })
+  userPoint: UserPoint;
 }
