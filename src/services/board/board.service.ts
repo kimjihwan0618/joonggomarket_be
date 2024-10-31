@@ -13,10 +13,13 @@ import * as log4js from 'log4js';
 import { CreateBoardCommentInput } from './dto/createBoardComment.input';
 import { BoardComment } from './entity/boardComment.entity';
 import { UpdateBoardCommentInput } from './dto/updateBoardComment.input';
+import { DeleteObjectCommand, S3 } from '@aws-sdk/client-s3';
 
 @Injectable()
 export class BoardService {
   private logger = log4js.getLogger(BoardService.name);
+  private s3: S3;
+  private bucketName: string = process.env.AWS_S3_BUCKET;
   constructor(
     @InjectRepository(Board)
     private boardRepository: Repository<Board>,
@@ -26,7 +29,15 @@ export class BoardService {
 
     @InjectRepository(BoardComment)
     private boardCommentRepository: Repository<BoardComment>,
-  ) {}
+  ) {
+    this.s3 = new S3({
+      region: process.env.AWS_REGION,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+    });
+  }
 
   async fetchBoards(
     endDate: Date,
@@ -141,6 +152,33 @@ export class BoardService {
           const { title, contents, youtubeUrl, images } = updateBoardInput;
           const { zipcode, address, addressDetail } =
             updateBoardInput.boardAddress;
+
+          // s3에서 이미지 제거 및 업데이트
+          const params = {
+            Bucket: this.bucketName,
+            Key: '',
+          };
+          for (let i = 0; i < 3; i++) {
+            params.Key = selectBoard.images[i].slice(1);
+            const command = new DeleteObjectCommand(params);
+            if (images[i] === '' && selectBoard.images[i] !== '') {
+              const result = await this.s3.send(command);
+              this.logger.info(
+                `S3 이미지 파일 삭제 (${result.$metadata.httpStatusCode}): ${selectBoard.images[i]}`,
+              );
+            }
+            if (
+              images[i] !== '' &&
+              images[i] !== selectBoard.images[i] &&
+              selectBoard.images[i] !== ''
+            ) {
+              const result = await this.s3.send(command);
+              this.logger.info(
+                `S3 이미지 파일 삭제 (${result.$metadata.httpStatusCode}): ${selectBoard.images[i]}`,
+              );
+            }
+          }
+
           const resultBoard = await transactionalEntityManager.save(Board, {
             ...selectBoard,
             title,
@@ -152,7 +190,6 @@ export class BoardService {
           const resultBoardAddress = await transactionalEntityManager.save(
             BoardAddress,
             {
-              //
               ...boardAddress,
               zipcode,
               address,
