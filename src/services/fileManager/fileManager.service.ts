@@ -43,7 +43,6 @@ export class FileManagerService {
             chunks.push(chunk);
           }
           const buffer = Buffer.concat(chunks); // 스트림을 버퍼로 변환
-
           const params = {
             Bucket: this.bucketName,
             Key: s3Path,

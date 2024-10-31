@@ -14,8 +14,8 @@ import { ConfigModule } from '@nestjs/config';
 import { BoardComment } from './services/board/entity/boardComment.entity';
 import { FileManager } from './services/fileManager/entity/fileManager.entity';
 import { FileManagerModule } from './services/fileManager/fileManager.module';
-import { FileManagerResolver } from './services/fileManager/fileManager.resolver';
-import { FileManagerService } from './services/fileManager/fileManager.service';
+import { PointTransaction } from './services/pointTransaction/entity/pointTransaction.entity';
+import { PointTransactionModule } from './services/pointTransaction/pointTransaction.module';
 
 @Module({
   imports: [
@@ -44,6 +44,7 @@ import { FileManagerService } from './services/fileManager/fileManager.service';
         User,
         UserPoint,
         FileManager,
+        PointTransaction,
       ],
       synchronize: true,
       logging: true,
@@ -63,6 +64,7 @@ import { FileManagerService } from './services/fileManager/fileManager.service';
     BoardModule,
     AuthModule,
     FileManagerModule,
+    PointTransactionModule,
   ],
 })
 export class AppModule {}

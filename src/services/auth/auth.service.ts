@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcryptjs';
@@ -24,10 +24,9 @@ export class AuthService {
       );
       return result;
     }
-    this.logger.error(
-      `-- 유저 로그인 validate error : email:${email}, password:${password} --`,
-    );
-    return null;
+    const msg = '유저 정보를 인증하는데 실패하였습니다.';
+    this.logger.error(`${msg}, ${email}, ${password}`);
+    throw new BadRequestException(msg);
   }
 
   async loginUser(
@@ -35,21 +34,23 @@ export class AuthService {
     email: string,
   ): Promise<{ accessToken: string; myRefreshToken: string }> {
     const user = await this.validateUser(password, email);
-    if (!user) {
-      throw new Error('유저 정보가 잘못입력되었습니다.');
+    if (user) {
+      const payload = {
+        name: user.name,
+        _id: user._id,
+        email: user.email,
+      };
+      const result = { accessToken: '', myRefreshToken: '' };
+      result.accessToken = this.jwtService.sign({
+        ...payload,
+        expiresIn: '1h',
+      });
+      result.myRefreshToken = this.jwtService.sign({
+        ...payload,
+        expiresIn: '7d',
+      });
+      return result;
     }
-    const payload = {
-      name: user.name,
-      _id: user._id,
-      email: user.email,
-    };
-    const result = { accessToken: '', myRefreshToken: '' };
-    result.accessToken = this.jwtService.sign({ ...payload, expiresIn: '1h' });
-    result.myRefreshToken = this.jwtService.sign({
-      ...payload,
-      expiresIn: '7d',
-    });
-    return result;
   }
 
   async restoreAccessToken(
@@ -72,9 +73,9 @@ export class AuthService {
       return result;
     } catch (error) {
       if (myRefreshToken !== undefined) {
-        this.logger.error(
-          `-- refreshToken이 유효하지 않습니다. : refreshToken : ${myRefreshToken} --`,
-        );
+        const msg = '재인증 토큰 정보가 유효하지 않습니다';
+        this.logger.error(`${msg}, ${error}`);
+        throw new BadRequestException(msg);
       }
     }
   }
@@ -88,12 +89,12 @@ export class AuthService {
         .getOrThrow()
         .set(`${accessToken}`, 'true', 'EX', ttl);
       return true;
-    } catch (error) {}
-    if (!accessToken) {
-      this.logger.error(
-        `-- accessToken이 유효하지 않습니다. : accessToken : ${accessToken} --`,
-      );
-      return false;
+    } catch (error) {
+      if (!accessToken) {
+        const msg = '인증 토큰 정보가 유효하지 않습니다';
+        this.logger.error(`${msg}, ${error}`);
+        throw new BadRequestException(msg);
+      }
     }
   }
 }

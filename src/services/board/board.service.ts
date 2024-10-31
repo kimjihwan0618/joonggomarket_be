@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -45,34 +46,42 @@ export class BoardService {
     search: string,
     page: number,
   ): Promise<Board[]> {
-    const query = this.boardRepository.createQueryBuilder('board');
+    try {
+      const query = this.boardRepository.createQueryBuilder('board');
+      if (startDate && endDate) {
+        query.andWhere('board.createdAt BETWEEN :startDate AND :endDate', {
+          startDate,
+          endDate,
+        });
+      }
+      if (search) {
+        query.andWhere('board.title LIKE :search OR board.title LIKE :search', {
+          search: `%${search}%`,
+        });
+      }
+      const limit = 10; // 페이지당 10개의 결과
+      const currentPage = page || 1; // page가 제공되지 않으면 1로 설정
+      query.skip((currentPage - 1) * limit).take(limit);
 
-    if (startDate && endDate) {
-      query.andWhere('board.createdAt BETWEEN :startDate AND :endDate', {
-        startDate,
-        endDate,
-      });
+      return query.getMany();
+    } catch (error) {
+      const msg = '게시글을 조회하는데 오류가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
     }
-
-    if (search) {
-      query.andWhere('board.title LIKE :search OR board.title LIKE :search', {
-        search: `%${search}%`,
-      });
-    }
-
-    const limit = 10; // 페이지당 10개의 결과
-    const currentPage = page || 1; // page가 제공되지 않으면 1로 설정
-
-    query.skip((currentPage - 1) * limit).take(limit);
-    return query.getMany();
   }
 
   async fetchBoardsOfTheBest(): Promise<Board[]> {
-    const query = this.boardRepository.createQueryBuilder('board');
+    try {
+      const query = this.boardRepository.createQueryBuilder('board');
+      query.orderBy('board.likeCount', 'DESC').limit(4);
 
-    query.orderBy('board.likeCount', 'DESC').limit(4);
-
-    return query.getMany();
+      return query.getMany();
+    } catch (error) {
+      const msg = '게시글 TOP 4를 조회하는데 오류가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
+    }
   }
 
   async fetchBoardsCount(
@@ -80,22 +89,26 @@ export class BoardService {
     startDate: Date,
     search: string,
   ): Promise<number> {
-    const query = this.boardRepository.createQueryBuilder('board');
+    try {
+      const query = this.boardRepository.createQueryBuilder('board');
+      if (startDate && endDate) {
+        query.andWhere('board.createdAt BETWEEN :startDate AND :endDate', {
+          startDate,
+          endDate,
+        });
+      }
+      if (search) {
+        query.andWhere('board.title LIKE :search OR board.title LIKE :search', {
+          search: `%${search}%`,
+        });
+      }
 
-    if (startDate && endDate) {
-      query.andWhere('board.createdAt BETWEEN :startDate AND :endDate', {
-        startDate,
-        endDate,
-      });
+      return query.getCount();
+    } catch (error) {
+      const msg = '게시글 카운트를 조회하는데 오류가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
     }
-
-    if (search) {
-      query.andWhere('board.title LIKE :search OR board.title LIKE :search', {
-        search: `%${search}%`,
-      });
-    }
-
-    return query.getCount();
   }
 
   async fetchBoard(_id: string): Promise<Board> {
@@ -124,8 +137,9 @@ export class BoardService {
 
           return await transactionalEntityManager.save(Board, board);
         } catch (error) {
-          this.logger.error(`-- 게시글 생성 Error: ${error} --`);
-          throw error;
+          const msg = '게시글 생성하는데 오류가 발생하였습니다.';
+          this.logger.error(msg + error);
+          throw new InternalServerErrorException(msg);
         }
       },
     );
@@ -205,8 +219,9 @@ export class BoardService {
           );
           return updatedBoard;
         } catch (error) {
-          this.logger.error(`-- 게시글 수정 Error: ${error} --`);
-          throw error; // 에러 발생 시 트랜잭션 롤백
+          const msg = '게시글 수정하는데 오류가 발생하였습니다.';
+          this.logger.error(msg + error);
+          throw new InternalServerErrorException(msg); // 에러 발생 시 트랜잭션 롤백
         }
       },
     );
@@ -215,20 +230,21 @@ export class BoardService {
   async deleteBoard(boardId: string, password: string): Promise<boolean> {
     try {
       if (!password) {
-        throw new BadRequestException('Password is required');
+        throw new BadRequestException('올바른 요청이 아닙니다.');
       }
       const board = await this.boardRepository.findOne({
         where: { _id: boardId, password },
       });
       if (!board) {
-        throw new NotFoundException('Board not found');
+        throw new NotFoundException('해당 게시글을 조회하는데 실패하였습니다.');
       }
 
       await this.boardAddressRepository.delete(boardId);
       return true;
     } catch (error) {
-      this.logger.error(`-- 게시글 삭제 Error: ${error} --`);
-      return false;
+      const msg = '게시글 삭제하는데 오류가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
     }
   }
 
@@ -259,8 +275,9 @@ export class BoardService {
             boardComment,
           );
         } catch (error) {
-          this.logger.error(`-- 게시글 댓글 생성 Error: ${error} --`);
-          throw error;
+          const msg = '게시글 댓글을 생성하는중 오류가 발생하였습니다.';
+          this.logger.error(msg + error);
+          throw new InternalServerErrorException(msg);
         }
       },
     );
@@ -270,19 +287,24 @@ export class BoardService {
     page: number,
     boardId: string,
   ): Promise<BoardComment[]> {
-    const query =
-      this.boardCommentRepository.createQueryBuilder('board_comment');
+    try {
+      const query =
+        this.boardCommentRepository.createQueryBuilder('board_comment');
+      if (boardId) {
+        query.andWhere('board_comment.board_id = :boardId', {
+          boardId: `${boardId}`,
+        });
+      }
+      const limit = 10;
+      const currentPage = page || 1;
+      query.skip((currentPage - 1) * limit).take(limit);
 
-    if (boardId) {
-      query.andWhere('board_comment.board_id = :boardId', {
-        boardId: `${boardId}`,
-      });
+      return query.getMany();
+    } catch (error) {
+      const msg = '게시글 댓글을 조회하는중 에러가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
     }
-
-    const limit = 10;
-    const currentPage = page || 1;
-    query.skip((currentPage - 1) * limit).take(limit);
-    return query.getMany();
   }
 
   async updateBoardComment(
@@ -301,7 +323,9 @@ export class BoardService {
           );
 
           if (!fetchBoardComment) {
-            throw new NotFoundException('Board Comment not found');
+            throw new NotFoundException(
+              '해당 게시글 댓글을 조회하는데 실패하였습니다.',
+            );
           }
 
           const { contents, rating } = updateBoardCommentInput;
@@ -318,7 +342,9 @@ export class BoardService {
           return result;
         } catch (error) {
           this.logger.error(`-- 게시글 댓글 수정 Error: ${error} --`);
-          throw error;
+          throw new InternalServerErrorException(
+            '게시글 댓글 수정 중 오류가 발생하였습니다.',
+          );
         }
       },
     );
@@ -333,13 +359,15 @@ export class BoardService {
         where: { _id: boardCommentId, password },
       });
       if (!board) {
-        throw new NotFoundException('Board not found');
+        throw new NotFoundException('게시글을 조회하는데 실패하였습니다.');
       }
       await this.boardCommentRepository.delete(boardCommentId);
       return true;
     } catch (error) {
       this.logger.error(`-- 게시글 댓글 삭제 Error: ${error} --`);
-      return false;
+      throw new InternalServerErrorException(
+        '게시글 댓글 삭제 중 오류가 발생하였습니다.',
+      );
     }
   }
 
@@ -352,9 +380,7 @@ export class BoardService {
           });
 
           if (!fetchBoard) {
-            throw new NotFoundException(
-              '게시글 좋아요가 정상적으로 처리되지 않았습니다.',
-            );
+            throw new NotFoundException('게시글을 조회하는데 실패하였습니다..');
           }
 
           const { ...selectBoard } = fetchBoard;
@@ -364,12 +390,14 @@ export class BoardService {
           });
 
           this.logger.info(
-            `-- 게시글 좋아요 likeBoard ${resultBoard._id}: ${resultBoard.likeCount} --`,
+            `-- 게시글 likeBoard ${resultBoard._id}: ${resultBoard.likeCount} --`,
           );
           return resultBoard.likeCount;
         } catch (error) {
-          this.logger.error(`-- 게시글 수정 likeBoard Error: ${error} --`);
-          throw error;
+          this.logger.error(`-- 게시글 likeBoard Error: ${error} --`);
+          throw new InternalServerErrorException(
+            '게시글 좋아요 중에 오류가 발생하였습니다.',
+          );
         }
       },
     );
@@ -384,9 +412,7 @@ export class BoardService {
           });
 
           if (!fetchBoard) {
-            throw new NotFoundException(
-              '게시글 싫어요가 정상적으로 처리되지 않았습니다.',
-            );
+            throw new NotFoundException('게시글을 조회하는데 실패하였습니다..');
           }
 
           const { ...selectBoard } = fetchBoard;
@@ -396,12 +422,14 @@ export class BoardService {
           });
 
           this.logger.info(
-            `-- 게시글 좋아요 likeBoard ${resultBoard._id}: ${resultBoard.dislikeCount} --`,
+            `-- 게시글 dislikeBoard ${resultBoard._id}: ${resultBoard.dislikeCount} --`,
           );
           return resultBoard.dislikeCount;
         } catch (error) {
-          this.logger.error(`-- 게시글 수정 likeBoard Error: ${error} --`);
-          throw error;
+          this.logger.error(`-- 게시글 dislikeBoard Error: ${error} --`);
+          throw new InternalServerErrorException(
+            '게시글 싫어요 중에 오류가 발생하였습니다.',
+          );
         }
       },
     );

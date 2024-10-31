@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { User } from './entity/user.entity';
@@ -59,5 +59,33 @@ export class UserService {
       relations: ['userPoint'],
     });
     return user;
+  }
+
+  async updateUserPoint(_id: string, price: number): Promise<User> {
+    return await this.userRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          const user = await this.findById(_id);
+          const resultUserPoint = await transactionalEntityManager.save(
+            UserPoint,
+            {
+              ...user.userPoint,
+              amount: user.userPoint.amount + price,
+              updatedAt: new Date(),
+            },
+          );
+          const updateUser = {
+            ...user,
+            UserPoint: { ...resultUserPoint },
+          };
+
+          return updateUser;
+        } catch (error) {
+          const msg = '결제 정보를 처리하는중 에러가 발생하였습니다.';
+          this.logger.error(msg + error);
+          throw new InternalServerErrorException(error);
+        }
+      },
+    );
   }
 }
