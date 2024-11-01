@@ -39,8 +39,7 @@ export class UsedItemResolver {
     return this.usedItemService.fetchUseditemsIPicked(search, page);
   }
 
-  @UseGuards(GqlAuthGuard)
-  @Mutation(() => [UsedItem])
+  @Query(() => [UsedItem])
   async fetchUseditemsISold(
     @Args('search', { nullable: true }) search: string,
     @Args('page', { type: () => Int, nullable: true }) page: number,
@@ -49,36 +48,30 @@ export class UsedItemResolver {
   }
 
   @UseGuards(GqlAuthGuard)
-  @Mutation(() => [UsedItem])
-  async updateBoard(): Promise<UsedItem> {
+  @Query(() => [UsedItem])
+  async fetchUseditemsOfTheBest(): Promise<UsedItem[]> {
     return this.usedItemService.fetchUseditemsOfTheBest();
   }
 
   @UseGuards(GqlAuthGuard)
   @Mutation(() => Boolean)
-  async deleteBoard(
-    @Args('boardId', { type: () => ID }) boardId: string,
-    @Args('password', { type: () => String, nullable: true }) password: string,
+  async fetchUseditemQuestions(
+    @Args('useditemId', { type: () => ID }) useditemId: string,
+    @Args('page', { type: () => Int, nullable: true }) page: number,
   ): Promise<boolean> {
-    return this.boardService.deleteBoard(boardId, password);
+    return this.usedItemService.fetchUseditemQuestions(useditemId, page);
   }
 
   @UseGuards(GqlAuthGuard)
   @Mutation(() => BoardComment)
-  async createBoardComment(
-    @Args('createBoardCommentInput')
-    createBoardCommentInput: CreateBoardCommentInput,
-    @Args('boardId', { type: () => ID }) id: string,
-  ): Promise<BoardComment> {
-    return this.boardService.createBoardComment(createBoardCommentInput, id);
-  }
-
-  @Query(() => [BoardComment])
-  async fetchBoardComments(
+  async fetchUseditemQuestionAnswers(
+    @Args('useditemQuestionId', { type: () => ID }) useditemQuestionId: string,
     @Args('page', { type: () => Int, nullable: true }) page: number,
-    @Args('boardId', { type: () => ID }) id: string,
-  ): Promise<BoardComment[]> {
-    return this.boardService.fetchBoardComments(page, id);
+  ): Promise<BoardComment> {
+    return this.usedItemService.fetchUseditemQuestionAnswers(
+      page,
+      useditemQuestionId,
+    );
   }
 
   @UseGuards(GqlAuthGuard)
