@@ -31,27 +31,27 @@ export class UsedItemResolver {
     return this.usedItemService.fetchUsedItem(id);
   }
 
-  @Query(() => [Board])
-  async fetchBoardsOfTheBest(): Promise<Board[]> {
-    return this.boardService.fetchBoardsOfTheBest();
+  @Query(() => [UsedItem])
+  async fetchUseditemsIPicked(
+    @Args('search', { nullable: true }) search: string,
+    @Args('page', { type: () => Int, nullable: true }) page: number,
+  ): Promise<UsedItem[]> {
+    return this.usedItemService.fetchUseditemsIPicked(search, page);
   }
 
   @UseGuards(GqlAuthGuard)
-  @Mutation(() => Board)
-  async createBoard(
-    @Args('createBoardInput') createBoardInput: CreateBoardInput,
-  ): Promise<Board> {
-    return this.boardService.createBoard(createBoardInput);
+  @Mutation(() => [UsedItem])
+  async fetchUseditemsISold(
+    @Args('search', { nullable: true }) search: string,
+    @Args('page', { type: () => Int, nullable: true }) page: number,
+  ): Promise<UsedItem[]> {
+    return this.usedItemService.fetchUseditemsISold(search, page);
   }
 
   @UseGuards(GqlAuthGuard)
-  @Mutation(() => Board)
-  async updateBoard(
-    @Args('updateBoardInput') updateBoardInput: UpdateBoardInput,
-    @Args('boardId', { type: () => ID }) boardId: string,
-    @Args('password', { type: () => String, nullable: true }) password: string,
-  ): Promise<Board> {
-    return this.boardService.updateBoard(updateBoardInput, boardId, password);
+  @Mutation(() => [UsedItem])
+  async updateBoard(): Promise<UsedItem> {
+    return this.usedItemService.fetchUseditemsOfTheBest();
   }
 
   @UseGuards(GqlAuthGuard)
