@@ -5,7 +5,7 @@ import { Board } from './usedItem.entity';
 
 @ObjectType()
 @Entity('board_comment')
-export class BoardComment {
+export class UseditemQuestionAnswer {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   _id: string;
