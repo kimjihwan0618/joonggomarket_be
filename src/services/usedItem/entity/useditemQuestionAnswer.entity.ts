@@ -1,10 +1,10 @@
 import { Field, HideField, ID, ObjectType } from '@nestjs/graphql';
 import { GraphQLDateTime } from 'graphql-scalars';
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
-import { Board } from './usedItem.entity';
+import { UsedItemQuestion } from './useditemQuestion.entity';
 
 @ObjectType()
-@Entity('board_comment')
+@Entity('usedItem_question_answer')
 export class UseditemQuestionAnswer {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
@@ -40,9 +40,9 @@ export class UseditemQuestionAnswer {
   deletedAt: Date;
 
   @HideField()
-  @ManyToOne(() => Board, (board) => board.comments, {
+  @ManyToOne(() => UsedItemQuestion, (question) => question.questionAnswers, {
     nullable: false,
     onDelete: 'CASCADE',
   })
-  board: Board;
+  question: UsedItemQuestion;
 }

@@ -1,7 +1,14 @@
 import { Field, HideField, ID, ObjectType } from '@nestjs/graphql';
 import { GraphQLDateTime } from 'graphql-scalars';
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { UsedItem } from './usedItem.entity';
+import { UseditemQuestionAnswer } from './useditemQuestionAnswer.entity';
 
 @ObjectType()
 @Entity('usedItem_question')
@@ -32,4 +39,15 @@ export class UsedItemQuestion {
     onDelete: 'CASCADE',
   })
   usedItem: UsedItem;
+
+  @OneToMany(
+    () => UseditemQuestionAnswer,
+    (questionAnswer) => questionAnswer.question,
+    {
+      cascade: true,
+      onDelete: 'CASCADE',
+    },
+  )
+  @Field(() => [UsedItemQuestion], { nullable: true })
+  questionAnswers: UseditemQuestionAnswer[];
 }

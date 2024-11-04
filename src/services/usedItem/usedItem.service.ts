@@ -24,7 +24,7 @@ export class UsedItemService {
   private s3: S3;
   private bucketName: string = process.env.AWS_S3_BUCKET;
   constructor(
-    @InjectRepository(Board)
+    @InjectRepository(UsedItem)
     private usedItemRepository: Repository<UsedItem>,
 
     // @InjectRepository(BoardAddress)
@@ -42,8 +42,11 @@ export class UsedItemService {
     });
   }
 
-  async fetchUsedItem(useditemId: string): Promise<UsedItem> {
-    return new UsedItem();
+  async fetchUsedItem(_id: string): Promise<UsedItem> {
+    return this.usedItemRepository.findOne({
+      where: { _id },
+      relations: ['usedItemAddress'],
+    });
   }
 
   async fetchUseditems(

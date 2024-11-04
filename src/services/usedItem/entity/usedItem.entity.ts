@@ -13,7 +13,7 @@ import { UsedItemAddress } from './useditemAddress.entity';
 import { UsedItemQuestion } from './useditemQuestion.entity';
 
 @ObjectType()
-@Entity('userItem_list')
+@Entity('usedItem_list')
 export class UsedItem {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')

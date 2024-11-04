@@ -3,7 +3,7 @@ import { Entity, Column, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
 import { UsedItem } from './usedItem.entity';
 
 @ObjectType()
-@Entity('userItem_address')
+@Entity('usedItem_address')
 export class UsedItemAddress {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
