@@ -54,16 +54,36 @@ export class UsedItemService {
     search: string,
     page: number,
   ): Promise<UsedItem[]> {
-    return [new UsedItem(), new UsedItem()];
+    try {
+      const query = this.usedItemRepository.createQueryBuilder('usedItem');
+      if (search) {
+        query.andWhere('usedItem.name LIKE :search', { search: `%${search}%` });
+      }
+
+      if (isSoldout) {
+        query.andWhere('usedItem.soldAt IS NULL');
+      } else {
+        query.andWhere('usedItem.soldAt IS NOT NULL');
+      }
+      const limit = 10;
+      const currentPage = page || 1;
+      query.skip((currentPage - 1) * limit).take(limit);
+
+      return query.getMany();
+    } catch (error) {
+      const msg = '상품을 조회하는데 오류가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
+    }
   }
 
-  async fetchUseditemsCountIPicked(): Promise<number> {
-    return 0;
-  }
+  // async fetchUseditemsCountIPicked(): Promise<number> {
+  //   return 0;
+  // }
 
-  async fetchUseditemsCountISold(): Promise<number> {
-    return 0;
-  }
+  // async fetchUseditemsCountISold(): Promise<number> {
+  //   return 0;
+  // }
 
   async fetchUseditemsIPicked(
     search: string,

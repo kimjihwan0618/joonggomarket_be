@@ -16,6 +16,11 @@ import { FileManager } from './services/fileManager/entity/fileManager.entity';
 import { FileManagerModule } from './services/fileManager/fileManager.module';
 import { PointTransaction } from './services/pointTransaction/entity/pointTransaction.entity';
 import { PointTransactionModule } from './services/pointTransaction/pointTransaction.module';
+import { UsedItem } from './services/usedItem/entity/usedItem.entity';
+import { UsedItemAddress } from './services/usedItem/entity/useditemAddress.entity';
+import { UsedItemQuestion } from './services/usedItem/entity/useditemQuestion.entity';
+import { UseditemQuestionAnswer } from './services/usedItem/entity/useditemQuestionAnswer.entity';
+import { UsedItemModule } from './services/usedItem/usedItem.module';
 
 @Module({
   imports: [
@@ -41,6 +46,10 @@ import { PointTransactionModule } from './services/pointTransaction/pointTransac
         Board,
         BoardAddress,
         BoardComment,
+        UsedItem,
+        UsedItemAddress,
+        UsedItemQuestion,
+        UseditemQuestionAnswer,
         User,
         UserPoint,
         FileManager,
@@ -61,6 +70,7 @@ import { PointTransactionModule } from './services/pointTransaction/pointTransac
       },
     }),
     UserModule,
+    UsedItemModule,
     BoardModule,
     AuthModule,
     FileManagerModule,

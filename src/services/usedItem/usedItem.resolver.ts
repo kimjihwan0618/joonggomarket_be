@@ -33,16 +33,17 @@ export class UsedItemResolver {
     return this.usedItemService.fetchUseditems(isSoldout, search, page);
   }
 
-  @Query(() => Int)
-  async fetchUseditemsCountIPicked(): Promise<number> {
-    return this.usedItemService.fetchUseditemsCountIPicked();
-  }
+  // @Query(() => Int)
+  // async fetchUseditemsCountIPicked(): Promise<number> {
+  //   return this.usedItemService.fetchUseditemsCountIPicked();
+  // }
 
-  @Query(() => Int)
-  async fetchUseditemsCountISold(): Promise<number> {
-    return this.usedItemService.fetchUseditemsCountISold();
-  }
+  // @Query(() => Int)
+  // async fetchUseditemsCountISold(): Promise<number> {
+  //   return this.usedItemService.fetchUseditemsCountISold();
+  // }
 
+  @UseGuards(GqlAuthGuard)
   @Query(() => [UsedItem])
   async fetchUseditemsIPicked(
     @Args('search', { nullable: true }) search: string,

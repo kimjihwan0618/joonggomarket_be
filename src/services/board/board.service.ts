@@ -55,7 +55,7 @@ export class BoardService {
         });
       }
       if (search) {
-        query.andWhere('board.title LIKE :search OR board.title LIKE :search', {
+        query.andWhere('board.title LIKE :search', {
           search: `%${search}%`,
         });
       }

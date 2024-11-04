@@ -7,9 +7,11 @@ import {
   OneToOne,
   JoinColumn,
   OneToMany,
+  ManyToMany,
 } from 'typeorm';
 import { UserPoint } from './userPoint.entity';
 import { PointTransaction } from '@/services/pointTransaction/entity/pointTransaction.entity';
+import { UsedItem } from '@/services/usedItem/entity/usedItem.entity';
 
 @ObjectType()
 @Entity('user_list')
@@ -54,8 +56,29 @@ export class User {
       onDelete: 'CASCADE',
     },
   )
-  @Field(() => [PointTransaction], { nullable: true })
+  @HideField()
   pointTransaction: PointTransaction[];
+
+  @ManyToMany(() => UsedItem, (usedItem) => usedItem.pickers, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  @HideField()
+  picked_useditems: UsedItem[];
+
+  @OneToOne(() => UsedItem, (usedItem) => usedItem.buyer, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  @HideField()
+  buyed_useditem: UsedItem;
+
+  @OneToOne(() => UsedItem, (usedItem) => usedItem.seller, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  @HideField()
+  sold_useditem: UsedItem;
 
   @OneToOne(() => UserPoint, (userPoint) => userPoint.user, {
     cascade: true,

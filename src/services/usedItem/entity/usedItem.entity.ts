@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, HideField, ID, ObjectType } from '@nestjs/graphql';
 import { GraphQLDateTime } from 'graphql-scalars';
 import {
   Entity,
@@ -7,10 +7,13 @@ import {
   OneToOne,
   JoinColumn,
   OneToMany,
+  ManyToOne,
+  ManyToMany,
 } from 'typeorm';
 import { Int } from '@nestjs/graphql';
 import { UsedItemAddress } from './useditemAddress.entity';
 import { UsedItemQuestion } from './useditemQuestion.entity';
+import { User } from '@/services/user/entity/user.entity';
 
 @ObjectType()
 @Entity('usedItem_list')
@@ -74,6 +77,27 @@ export class UsedItem {
   @JoinColumn()
   @Field(() => UsedItemAddress, { nullable: true })
   usedItemAddress: UsedItemAddress;
+
+  @Field(() => User, { nullable: true })
+  @OneToOne(() => User, (user) => user.buyed_useditem, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  buyer: User;
+
+  @Field(() => User, { nullable: true })
+  @OneToOne(() => User, (user) => user.sold_useditem, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  seller: User;
+
+  @HideField()
+  @ManyToMany(() => User, (user) => user.picked_useditems, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  pickers: User[];
 
   @OneToMany(() => UsedItemQuestion, (question) => question.usedItem, {
     cascade: true,
