@@ -1,10 +1,7 @@
 import { InputType, Field } from '@nestjs/graphql';
 
 @InputType()
-export class UpdateBoardCommentInput {
+export class CreateUseditemQuestionInput {
   @Field()
   contents: string;
-
-  @Field()
-  rating: number;
 }
