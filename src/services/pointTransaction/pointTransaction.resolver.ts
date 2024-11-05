@@ -1,9 +1,11 @@
-import { Resolver, Mutation, Args, ID, Context } from '@nestjs/graphql';
+import { Resolver, Mutation, Args, ID } from '@nestjs/graphql';
 import { PointTransaction } from './entity/pointTransaction.entity';
 import { PointTransactionService } from './pointTransaction.service';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../auth/gql-auth.guard';
 import { JwtService } from '@nestjs/jwt';
+import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { User } from '../user/entity/user.entity';
 
 @Resolver(() => PointTransaction)
 export class PointTransactionResolver {
@@ -16,13 +18,11 @@ export class PointTransactionResolver {
   @Mutation(() => PointTransaction)
   async createPointTransactionOfLoading(
     @Args('impUid', { type: () => ID }) impUid: string,
-    @Context() context: { req: Request; res: Response },
+    @CurrentUser() user: User,
   ): Promise<PointTransaction> {
-    const accessToken = context.req.headers['authorization']?.split(' ')[1];
-    const { _id } = this.jwtService.decode(accessToken) as any;
     return this.pointTransactionService.createPointTransactionOfLoading(
       impUid,
-      _id,
+      user._id,
     );
   }
 }

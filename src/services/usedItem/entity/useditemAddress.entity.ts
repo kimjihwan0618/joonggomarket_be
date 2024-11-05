@@ -3,7 +3,7 @@ import { Entity, Column, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
 import { UsedItem } from './usedItem.entity';
 
 @ObjectType()
-@Entity('usedItem_address')
+@Entity('useditem_address')
 export class UsedItemAddress {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
@@ -22,14 +22,14 @@ export class UsedItemAddress {
   addressDetail: string;
 
   @Field(() => Float, { nullable: true })
-  @Column({ nullable: true })
+  @Column('float', { nullable: true })
   lat: number;
 
   @Field(() => Float, { nullable: true })
-  @Column({ nullable: true })
+  @Column('float', { nullable: true })
   lng: number;
 
-  @OneToOne(() => UsedItem, (usedItem) => usedItem.usedItemAddress, {
+  @OneToOne(() => UsedItem, (usedItem) => usedItem.useditemAddress, {
     onDelete: 'CASCADE',
   })
   usedItem: UsedItem;

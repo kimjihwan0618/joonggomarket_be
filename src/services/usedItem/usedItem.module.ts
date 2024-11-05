@@ -3,8 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsedItem } from './entity/usedItem.entity';
 import { UsedItemAddress } from './entity/useditemAddress.entity';
 import { UsedItemQuestion } from './entity/useditemQuestion.entity';
-import { UsedItemService } from './usedItem.service';
-import { UsedItemResolver } from './usedItem.resolver';
+import { UsedItemService } from './useditem.service';
+import { UsedItemResolver } from './useditem.resolver';
 import { UseditemQuestionAnswer } from './entity/useditemQuestionAnswer.entity';
 
 @Module({

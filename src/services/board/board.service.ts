@@ -173,7 +173,9 @@ export class BoardService {
             Key: '',
           };
           for (let i = 0; i < 3; i++) {
-            params.Key = selectBoard.images[i].slice(1);
+            params.Key = selectBoard.images[i]
+              ? selectBoard.images[i].slice(1)
+              : 'none';
             const command = new DeleteObjectCommand(params);
             if (images[i] === '' && selectBoard.images[i] !== '') {
               const result = await this.s3.send(command);

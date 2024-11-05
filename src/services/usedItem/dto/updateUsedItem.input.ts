@@ -13,7 +13,7 @@ export class UpdateUseditemInput {
   contents: string;
 
   @Field({ nullable: true })
-  price: string;
+  price: number;
 
   @Field(() => [String])
   tags: string[];

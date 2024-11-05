@@ -11,7 +11,7 @@ import { UsedItem } from './usedItem.entity';
 import { UseditemQuestionAnswer } from './useditemQuestionAnswer.entity';
 
 @ObjectType()
-@Entity('usedItem_question')
+@Entity('useditem_question')
 export class UsedItemQuestion {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')

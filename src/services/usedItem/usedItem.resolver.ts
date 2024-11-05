@@ -5,20 +5,22 @@ import { UsedItemQuestion } from './entity/useditemQuestion.entity';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../auth/gql-auth.guard';
 import { UseditemQuestionAnswer } from './entity/useditemQuestionAnswer.entity';
-import { UsedItemService } from './usedItem.service';
+import { UsedItemService } from './useditem.service';
 import { UpdateUseditemInput } from './dto/updateUsedItem.input';
 import { CreateUseditemQuestionInput } from './dto/createUseditemQuestion.input';
 import { UpdateUseditemQuestionInput } from './dto/updateUseditemQuestion.input';
 import { CreateUseditemQuestionAnswerInput } from './dto/createUseditemQuestionAnswer.input';
 import { UpdateUseditemQuestionAnswerInput } from './dto/updateUseditemQuestionAnswer.input';
 import { CreateUseditemInput } from './dto/createUsedItem.input';
+import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { User } from '../user/entity/user.entity';
 
 @Resolver(() => UsedItem)
 export class UsedItemResolver {
   constructor(private usedItemService: UsedItemService) {}
 
   @Query(() => UsedItem)
-  async fetchUsedItem(
+  async fetchUseditem(
     @Args('useditemId', { type: () => ID }) id: string,
   ): Promise<UsedItem> {
     return this.usedItemService.fetchUsedItem(id);
@@ -89,8 +91,9 @@ export class UsedItemResolver {
   async createUseditem(
     @Args('createUseditemInput')
     createUseditemInput: CreateUseditemInput,
+    @CurrentUser() user: User,
   ): Promise<UsedItem> {
-    return this.usedItemService.createUseditem(createUseditemInput);
+    return this.usedItemService.createUseditem(createUseditemInput, user);
   }
 
   @UseGuards(GqlAuthGuard)

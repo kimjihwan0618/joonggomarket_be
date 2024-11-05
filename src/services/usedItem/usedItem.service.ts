@@ -17,6 +17,8 @@ import { DeleteObjectCommand, S3 } from '@aws-sdk/client-s3';
 import { UseditemQuestionAnswer } from './entity/useditemQuestionAnswer.entity';
 import { CreateUseditemQuestionAnswerInput } from './dto/createUseditemQuestionAnswer.input';
 import { UpdateUseditemQuestionAnswerInput } from './dto/updateUseditemQuestionAnswer.input';
+import { UsedItemAddress } from './entity/useditemAddress.entity';
+import { User } from '../user/entity/user.entity';
 
 @Injectable()
 export class UsedItemService {
@@ -25,7 +27,7 @@ export class UsedItemService {
   private bucketName: string = process.env.AWS_S3_BUCKET;
   constructor(
     @InjectRepository(UsedItem)
-    private usedItemRepository: Repository<UsedItem>,
+    private useditemRepository: Repository<UsedItem>,
 
     // @InjectRepository(BoardAddress)
     // private boardAddressRepository: Repository<BoardAddress>,
@@ -43,9 +45,9 @@ export class UsedItemService {
   }
 
   async fetchUsedItem(_id: string): Promise<UsedItem> {
-    return this.usedItemRepository.findOne({
+    return this.useditemRepository.findOne({
       where: { _id },
-      relations: ['usedItemAddress'],
+      relations: ['useditemAddress', 'seller'],
     });
   }
 
@@ -55,15 +57,15 @@ export class UsedItemService {
     page: number,
   ): Promise<UsedItem[]> {
     try {
-      const query = this.usedItemRepository.createQueryBuilder('usedItem');
+      const query = this.useditemRepository.createQueryBuilder('useditem');
       if (search) {
-        query.andWhere('usedItem.name LIKE :search', { search: `%${search}%` });
+        query.andWhere('useditem.name LIKE :search', { search: `%${search}%` });
       }
 
       if (isSoldout) {
-        query.andWhere('usedItem.soldAt IS NULL');
+        query.andWhere('useditem.soldAt IS NOT NULL');
       } else {
-        query.andWhere('usedItem.soldAt IS NOT NULL');
+        query.andWhere('useditem.soldAt IS NULL');
       }
       const limit = 10;
       const currentPage = page || 1;
@@ -116,8 +118,33 @@ export class UsedItemService {
 
   async createUseditem(
     createUseditemInput: CreateUseditemInput,
+    user: User,
   ): Promise<UsedItem> {
-    return new UsedItem();
+    return await this.useditemRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          const useditemAddress = createUseditemInput.useditemAddress
+            ? await transactionalEntityManager.save(
+                UsedItemAddress,
+                createUseditemInput.useditemAddress,
+              )
+            : null;
+          const usedItem = this.useditemRepository.create({
+            ...createUseditemInput,
+            useditemAddress,
+            seller: user,
+            _id: useditemAddress?._id,
+          });
+          this.logger.info(`-- 상품 생성 : ${JSON.stringify(usedItem)} --`);
+          console.log(usedItem);
+          return await transactionalEntityManager.save(UsedItem, usedItem);
+        } catch (error) {
+          const msg = '상품글을 생성하는데 오류가 발생하였습니다.';
+          this.logger.error(msg + error);
+          throw new InternalServerErrorException(msg);
+        }
+      },
+    );
   }
 
   async deleteUseditem(useditemId: string): Promise<string> {

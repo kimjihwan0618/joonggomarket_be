@@ -13,7 +13,7 @@ export class CreateUseditemInput {
   contents: string;
 
   @Field()
-  price: string;
+  price: number;
 
   @Field(() => [String])
   tags: string[];

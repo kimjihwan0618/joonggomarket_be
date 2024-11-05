@@ -4,7 +4,7 @@ import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { UsedItemQuestion } from './useditemQuestion.entity';
 
 @ObjectType()
-@Entity('usedItem_question_answer')
+@Entity('useditem_question_answer')
 export class UseditemQuestionAnswer {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')

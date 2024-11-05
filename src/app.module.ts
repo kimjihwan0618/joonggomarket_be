@@ -20,7 +20,7 @@ import { UsedItem } from './services/usedItem/entity/usedItem.entity';
 import { UsedItemAddress } from './services/usedItem/entity/useditemAddress.entity';
 import { UsedItemQuestion } from './services/usedItem/entity/useditemQuestion.entity';
 import { UseditemQuestionAnswer } from './services/usedItem/entity/useditemQuestionAnswer.entity';
-import { UsedItemModule } from './services/usedItem/usedItem.module';
+import { UsedItemModule } from './services/usedItem/useditem.module';
 
 @Module({
   imports: [

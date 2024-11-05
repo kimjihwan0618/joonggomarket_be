@@ -7,7 +7,6 @@ import {
   OneToOne,
   JoinColumn,
   OneToMany,
-  ManyToOne,
   ManyToMany,
 } from 'typeorm';
 import { Int } from '@nestjs/graphql';
@@ -16,7 +15,7 @@ import { UsedItemQuestion } from './useditemQuestion.entity';
 import { User } from '@/services/user/entity/user.entity';
 
 @ObjectType()
-@Entity('usedItem_list')
+@Entity('useditem_list')
 export class UsedItem {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
@@ -36,7 +35,7 @@ export class UsedItem {
 
   @Field(() => Int)
   @Column()
-  price: string;
+  price: number;
 
   @Field(() => [String], { nullable: true })
   @Column('text', { array: true, nullable: true })
@@ -76,16 +75,18 @@ export class UsedItem {
   )
   @JoinColumn()
   @Field(() => UsedItemAddress, { nullable: true })
-  usedItemAddress: UsedItemAddress;
+  useditemAddress: UsedItemAddress;
 
   @Field(() => User, { nullable: true })
+  @JoinColumn()
   @OneToOne(() => User, (user) => user.buyed_useditem, {
     cascade: true,
     onDelete: 'CASCADE',
   })
   buyer: User;
 
-  @Field(() => User, { nullable: true })
+  @Field(() => User)
+  @JoinColumn()
   @OneToOne(() => User, (user) => user.sold_useditem, {
     cascade: true,
     onDelete: 'CASCADE',
