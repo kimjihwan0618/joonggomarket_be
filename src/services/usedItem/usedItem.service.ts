@@ -5,7 +5,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
+import {
+  EntityManager,
+  FindManyOptions,
+  FindOptionsWhere,
+  ILike,
+  IsNull,
+  Not,
+  Repository,
+} from 'typeorm';
 import { UsedItem } from './entity/usedItem.entity';
 import { CreateUseditemInput } from './dto/createUsedItem.input';
 import { UpdateUseditemInput } from './dto/updateUsedItem.input';
@@ -57,21 +65,26 @@ export class UsedItemService {
     page: number,
   ): Promise<UsedItem[]> {
     try {
-      const query = this.useditemRepository.createQueryBuilder('useditem');
+      const whereConditions: FindOptionsWhere<UsedItem>[] = [];
       if (search) {
-        query.andWhere('useditem.name LIKE :search', { search: `%${search}%` });
+        whereConditions.push({ name: ILike(`%${search}%`) });
       }
 
       if (isSoldout) {
-        query.andWhere('useditem.soldAt IS NOT NULL');
+        whereConditions.push({ soldAt: Not(IsNull()) });
       } else {
-        query.andWhere('useditem.soldAt IS NULL');
+        whereConditions.push({ soldAt: IsNull() });
       }
-      const limit = 10;
-      const currentPage = page || 1;
-      query.skip((currentPage - 1) * limit).take(limit);
 
-      return query.getMany();
+      const LIMIT = 10;
+      const currentPage = page || 1;
+      const options: FindManyOptions<UsedItem> = {
+        relations: ['useditemAddress', 'seller'],
+        where: whereConditions.length > 0 ? whereConditions : undefined,
+        skip: (currentPage - 1) * LIMIT,
+        take: LIMIT,
+      };
+      return this.useditemRepository.find(options);
     } catch (error) {
       const msg = '상품을 조회하는데 오류가 발생하였습니다.';
       this.logger.error(msg + error);
