@@ -118,6 +118,14 @@ export class UserService {
     return user;
   }
 
+  async findUserWithPickedUsedItems(_id: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { _id },
+      relations: ['picked_useditems'],
+    });
+    return user;
+  }
+
   async updateUserPoint(_id: string, price: number): Promise<User> {
     return await this.userRepository.manager.transaction(
       async (transactionalEntityManager: EntityManager) => {

@@ -118,8 +118,9 @@ export class UsedItemResolver {
   @Mutation(() => Int)
   async toggleUseditemPick(
     @Args('useditemId', { type: () => ID }) useditemId: string,
+    @CurrentUser() user: User,
   ): Promise<number> {
-    return this.usedItemService.toggleUseditemPick(useditemId);
+    return this.usedItemService.toggleUseditemPick(useditemId, user);
   }
 
   @UseGuards(GqlAuthGuard)

@@ -95,10 +95,7 @@ export class UsedItem {
   seller: User;
 
   @HideField()
-  @ManyToMany(() => User, (user) => user.picked_useditems, {
-    nullable: true,
-    onDelete: 'CASCADE',
-  })
+  @ManyToMany(() => User, (user) => user.picked_useditems)
   pickers: User[];
 
   @OneToMany(() => UsedItemQuestion, (question) => question.usedItem, {

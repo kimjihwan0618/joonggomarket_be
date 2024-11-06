@@ -27,16 +27,18 @@ import { CreateUseditemQuestionAnswerInput } from './dto/createUseditemQuestionA
 import { UpdateUseditemQuestionAnswerInput } from './dto/updateUseditemQuestionAnswer.input';
 import { User } from '../user/entity/user.entity';
 import { FileManagerService } from '../fileManager/fileManager.service';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class UsedItemService {
   private logger = log4js.getLogger(UsedItemService.name);
   private s3: S3;
   private bucketName: string = process.env.AWS_S3_BUCKET;
-  private fileManagerService: FileManagerService;
   constructor(
     @InjectRepository(UsedItem)
     private useditemRepository: Repository<UsedItem>,
+    private fileManagerService: FileManagerService,
+    private userService: UserService,
 
     // @InjectRepository(BoardAddress)
     // private boardAddressRepository: Repository<BoardAddress>,
@@ -218,8 +220,51 @@ export class UsedItemService {
     );
   }
 
-  async toggleUseditemPick(useditemId: string): Promise<number> {
-    return 0;
+  async toggleUseditemPick(useditemId: string, user: User): Promise<number> {
+    return await this.useditemRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          const fetchUser: User =
+            await this.userService.findUserWithPickedUsedItems(user._id);
+          const usedItem = await this.useditemRepository.findOne({
+            where: { _id: useditemId },
+            relations: ['pickers'],
+          });
+
+          if (!usedItem) {
+            throw new NotFoundException('상품 조회결과가 없습니다.');
+          }
+
+          const isPicked = fetchUser.picked_useditems.some(
+            (item) => item._id === useditemId,
+          );
+
+          if (isPicked) {
+            // 이미 찜한 상태라면 찜을 해제
+            usedItem.pickers = usedItem.pickers.filter(
+              (picker) => picker._id !== fetchUser._id,
+            );
+            usedItem.pickedCount = (usedItem.pickedCount || 0) - 1;
+          } else {
+            // 찜하지 않은 상태라면 찜 추가
+            usedItem.pickers.push(fetchUser);
+            usedItem.pickedCount = (usedItem.pickedCount || 0) + 1;
+          }
+
+          // 트랜잭션을 통해 UsedItem만 저장하여 관계를 업데이트
+          const resultUseditem = await transactionalEntityManager.save(
+            UsedItem,
+            usedItem,
+          );
+
+          return resultUseditem.pickedCount;
+        } catch (error) {
+          const msg = '상품을 찜하는데 오류가 발생하였습니다.';
+          this.logger.error(msg + error);
+          throw new InternalServerErrorException(msg);
+        }
+      },
+    );
   }
 
   async createUseditemQuestion(

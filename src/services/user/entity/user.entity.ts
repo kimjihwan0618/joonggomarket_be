@@ -8,6 +8,7 @@ import {
   JoinColumn,
   OneToMany,
   ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { UserPoint } from './userPoint.entity';
 import { PointTransaction } from '@/services/pointTransaction/entity/pointTransaction.entity';
@@ -59,9 +60,9 @@ export class User {
   @HideField()
   pointTransaction: PointTransaction[];
 
+  @JoinTable()
   @ManyToMany(() => UsedItem, (usedItem) => usedItem.pickers, {
-    nullable: true,
-    onDelete: 'CASCADE',
+    cascade: true,
   })
   @HideField()
   picked_useditems: UsedItem[];

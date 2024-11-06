@@ -6,6 +6,8 @@ import { UsedItemQuestion } from './entity/useditemQuestion.entity';
 import { UsedItemService } from './useditem.service';
 import { UsedItemResolver } from './useditem.resolver';
 import { UseditemQuestionAnswer } from './entity/useditemQuestionAnswer.entity';
+import { UserModule } from '../user/user.module';
+import { FileManagerModule } from '../fileManager/fileManager.module';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { UseditemQuestionAnswer } from './entity/useditemQuestionAnswer.entity';
       UsedItemQuestion,
       UseditemQuestionAnswer,
     ]),
+    FileManagerModule,
+    UserModule,
   ],
   providers: [UsedItemService, UsedItemResolver],
 })

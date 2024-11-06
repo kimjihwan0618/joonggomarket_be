@@ -12,7 +12,7 @@ import { AuthResolver } from './auth.resolver';
     PassportModule,
     JwtModule.register({
       secret: 'markets_jwt_secret_key',
-      signOptions: { expiresIn: '1h' }, // 토큰 유효기간 설정
+      signOptions: { expiresIn: '7d' }, // 토큰 유효기간 설정
     }),
   ],
   providers: [AuthService, JwtStrategy, AuthResolver],
