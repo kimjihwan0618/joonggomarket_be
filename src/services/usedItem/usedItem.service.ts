@@ -465,7 +465,43 @@ export class UsedItemService {
   async updateUseditemQuestionAnswer(
     updateUseditemQuestionAnswerInput: UpdateUseditemQuestionAnswerInput,
     useditemQuestionAnswerId: string,
+    user: User,
   ): Promise<UseditemQuestionAnswer> {
-    return new UseditemQuestionAnswer();
+    return await this.useditemQuestionAnswerRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          const fetchUser: User = await this.userService.findById(user._id);
+          const fetchUseditemQuestionAnswer =
+            await transactionalEntityManager.findOne(UseditemQuestionAnswer, {
+              where: {
+                _id: useditemQuestionAnswerId,
+                user: { _id: user._id },
+              },
+            });
+
+          if (!fetchUseditemQuestionAnswer) {
+            throw new NotFoundException(
+              '상품 질문 답변을 조회하는 도중 오류가 발생하였습니다.',
+            );
+          }
+
+          const updatedUseditemQuestionAnswer = {
+            ...fetchUseditemQuestionAnswer,
+            ...updateUseditemQuestionAnswerInput,
+            user: fetchUser,
+            updatedAt: new Date(),
+          };
+          const result = await transactionalEntityManager.save(
+            UseditemQuestionAnswer,
+            updatedUseditemQuestionAnswer,
+          );
+          return result;
+        } catch (error) {
+          const msg = '상품 질문 답변을 수정하는데 오류가 발생하였습니다.';
+          this.logger.error(msg + error);
+          throw new InternalServerErrorException(msg);
+        }
+      },
+    );
   }
 }

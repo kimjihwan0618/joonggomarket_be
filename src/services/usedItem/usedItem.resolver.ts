@@ -199,12 +199,14 @@ export class UsedItemResolver {
   async updateUseditemQuestionAnswer(
     @Args('updateUseditemQuestionAnswerInput')
     updateUseditemQuestionAnswerInput: UpdateUseditemQuestionAnswerInput,
-    @Args('useditemQuestionId', { type: () => ID })
+    @Args('useditemQuestionAnswerId', { type: () => ID })
     useditemQuestionAnswerId: string,
+    @CurrentUser() user: User,
   ): Promise<UseditemQuestionAnswer> {
     return this.usedItemService.updateUseditemQuestionAnswer(
       updateUseditemQuestionAnswerInput,
       useditemQuestionAnswerId,
+      user,
     );
   }
 }
