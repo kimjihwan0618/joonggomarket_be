@@ -122,16 +122,9 @@ export class BoardService {
     return await this.boardRepository.manager.transaction(
       async (transactionalEntityManager: EntityManager) => {
         try {
-          const boardAddress = createBoardInput.boardAddress
-            ? await transactionalEntityManager.save(
-                BoardAddress,
-                createBoardInput.boardAddress,
-              )
-            : null;
           const board = this.boardRepository.create({
             ...createBoardInput,
-            boardAddress,
-            _id: boardAddress?._id,
+            boardAddress: createBoardInput.boardAddress,
           });
           this.logger.info(`-- 게시글 생성 : ${JSON.stringify(board)} --`);
 
@@ -162,64 +155,47 @@ export class BoardService {
             throw new NotFoundException('비밀번호가 잘못되었습니다.');
           }
 
-          const { boardAddress, ...selectBoard } = fetchBoard;
-          const { title, contents, youtubeUrl, images } = updateBoardInput;
-          const { zipcode, address, addressDetail } =
-            updateBoardInput.boardAddress;
-
           // s3에서 이미지 제거 및 업데이트
           const params = {
             Bucket: this.bucketName,
             Key: '',
           };
           for (let i = 0; i < 3; i++) {
-            params.Key = selectBoard.images[i]
-              ? selectBoard.images[i].slice(1)
+            params.Key = fetchBoard.images[i]
+              ? fetchBoard.images[i].slice(1)
               : 'none';
             const command = new DeleteObjectCommand(params);
-            if (images[i] === '' && selectBoard.images[i] !== '') {
-              const result = await this.s3.send(command);
-              this.logger.info(
-                `S3 이미지 파일 삭제 (${result.$metadata.httpStatusCode}): ${selectBoard.images[i]}`,
-              );
-            }
             if (
-              images[i] !== '' &&
-              images[i] !== selectBoard.images[i] &&
-              selectBoard.images[i] !== ''
+              updateBoardInput.images[i] === '' &&
+              fetchBoard.images[i] !== ''
             ) {
               const result = await this.s3.send(command);
               this.logger.info(
-                `S3 이미지 파일 삭제 (${result.$metadata.httpStatusCode}): ${selectBoard.images[i]}`,
+                `S3 이미지 파일 삭제 (${result.$metadata.httpStatusCode}): ${fetchBoard.images[i]}`,
+              );
+            }
+            if (
+              updateBoardInput.images[i] !== '' &&
+              updateBoardInput.images[i] !== fetchBoard.images[i] &&
+              fetchBoard.images[i] !== ''
+            ) {
+              const result = await this.s3.send(command);
+              this.logger.info(
+                `S3 이미지 파일 삭제 (${result.$metadata.httpStatusCode}): ${fetchBoard.images[i]}`,
               );
             }
           }
 
-          const resultBoard = await transactionalEntityManager.save(Board, {
-            ...selectBoard,
-            title,
-            contents,
-            youtubeUrl,
-            images,
-            updatedAt: new Date(),
-          });
-          const resultBoardAddress = await transactionalEntityManager.save(
-            BoardAddress,
-            {
-              ...boardAddress,
-              zipcode,
-              address,
-              addressDetail,
-            },
-          );
           const updatedBoard = {
-            ...resultBoard,
-            boardAddress: { ...resultBoardAddress },
+            ...fetchBoard,
+            ...updateBoardInput,
+            boardAddress: { ...updateBoardInput.boardAddress },
+            updatedAt: new Date(),
           };
           this.logger.info(
             `-- 게시글 수정 : ${JSON.stringify(updatedBoard)} --`,
           );
-          return updatedBoard;
+          return await transactionalEntityManager.save(Board, updatedBoard);
         } catch (error) {
           const msg = '게시글 수정하는데 오류가 발생하였습니다.';
           this.logger.error(msg + error);
@@ -325,16 +301,12 @@ export class BoardService {
           );
 
           if (!fetchBoardComment) {
-            throw new NotFoundException(
-              '해당 게시글 댓글을 조회하는데 실패하였습니다.',
-            );
+            throw new NotFoundException('비밀번호를 확인해주세요.');
           }
 
-          const { contents, rating } = updateBoardCommentInput;
           const updatedBoardComment = {
             ...fetchBoardComment,
-            contents,
-            rating,
+            ...updateBoardCommentInput,
             updatedAt: new Date(),
           };
           const result = await transactionalEntityManager.save(
@@ -385,10 +357,9 @@ export class BoardService {
             throw new NotFoundException('게시글을 조회하는데 실패하였습니다..');
           }
 
-          const { ...selectBoard } = fetchBoard;
           const resultBoard = await transactionalEntityManager.save(Board, {
-            ...selectBoard,
-            likeCount: selectBoard.likeCount + 1,
+            ...fetchBoard,
+            likeCount: fetchBoard.likeCount + 1,
           });
 
           this.logger.info(
@@ -417,10 +388,9 @@ export class BoardService {
             throw new NotFoundException('게시글을 조회하는데 실패하였습니다..');
           }
 
-          const { ...selectBoard } = fetchBoard;
           const resultBoard = await transactionalEntityManager.save(Board, {
-            ...selectBoard,
-            dislikeCount: selectBoard.dislikeCount + 1,
+            ...fetchBoard,
+            dislikeCount: fetchBoard.dislikeCount + 1,
           });
 
           this.logger.info(

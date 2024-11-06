@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { CreateUserInput } from './dto/createUser.input';
 import { UserPoint } from './entity/userPoint.entity';
 import * as log4js from 'log4js';
+import { UpdateUserInput } from './dto/updateUser.input';
 
 @Injectable()
 export class UserService {
@@ -41,6 +42,38 @@ export class UserService {
         } catch (error) {
           this.logger.error(`-- 유저 생성 Error: ${error} --`);
           throw error;
+        }
+      },
+    );
+  }
+
+  async updateUser(
+    updateUserInput: UpdateUserInput,
+    user: User,
+  ): Promise<User> {
+    return await this.userRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          const fetchUser = await transactionalEntityManager.findOne(User, {
+            where: { _id: user._id },
+            relations: ['userPoint'],
+          });
+
+          const updatedUser = {
+            ...fetchUser,
+            ...updateUserInput,
+            updateAt: new Date(),
+          };
+
+          this.logger.info(
+            `-- 유저 정보가 수정되었습니다. : ${JSON.stringify(updatedUser)} --`,
+          );
+
+          return await transactionalEntityManager.save(User, updatedUser);
+        } catch (error) {
+          const msg = '유저 정보를 수정하는데 오류가 발생하였습니다.';
+          this.logger.error(msg + error);
+          throw new InternalServerErrorException(msg);
         }
       },
     );

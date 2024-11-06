@@ -65,15 +65,15 @@ export class UsedItemService {
     page: number,
   ): Promise<UsedItem[]> {
     try {
-      const whereConditions: FindOptionsWhere<UsedItem>[] = [];
+      const whereConditions: FindOptionsWhere<UsedItem> = {};
       if (search) {
-        whereConditions.push({ name: ILike(`%${search}%`) });
+        whereConditions.name = ILike(`%${search}%`);
       }
 
       if (isSoldout) {
-        whereConditions.push({ soldAt: Not(IsNull()) });
+        whereConditions.soldAt = Not(IsNull());
       } else {
-        whereConditions.push({ soldAt: IsNull() });
+        whereConditions.soldAt = IsNull();
       }
 
       const LIMIT = 10;
@@ -145,20 +145,12 @@ export class UsedItemService {
     return await this.useditemRepository.manager.transaction(
       async (transactionalEntityManager: EntityManager) => {
         try {
-          const useditemAddress = createUseditemInput.useditemAddress
-            ? await transactionalEntityManager.save(
-                UsedItemAddress,
-                createUseditemInput.useditemAddress,
-              )
-            : null;
           const usedItem = this.useditemRepository.create({
             ...createUseditemInput,
-            useditemAddress,
+            useditemAddress: createUseditemInput.useditemAddress,
             seller: user,
-            _id: useditemAddress?._id,
           });
           this.logger.info(`-- 상품 생성 : ${JSON.stringify(usedItem)} --`);
-          console.log(usedItem);
           return await transactionalEntityManager.save(UsedItem, usedItem);
         } catch (error) {
           const msg = '상품글을 생성하는데 오류가 발생하였습니다.';
@@ -188,70 +180,50 @@ export class UsedItemService {
             },
           );
 
-          const { useditemAddress, ...selectUseditem } = fetchUseditem;
-          const { name, remarks, contents, price, tags, images } =
-            updateUseditemInput;
-          const { zipcode, address, addressDetail } =
-            updateUseditemInput.useditemAddress;
-
           // s3에서 이미지 제거 및 업데이트
           const params = {
             Bucket: this.bucketName,
             Key: '',
           };
           for (let i = 0; i < 3; i++) {
-            params.Key = selectUseditem.images[i]
-              ? selectUseditem.images[i].slice(1)
+            params.Key = fetchUseditem.images[i]
+              ? fetchUseditem.images[i].slice(1)
               : 'none';
             const command = new DeleteObjectCommand(params);
-            if (images[i] === '' && selectUseditem.images[i] !== '') {
-              const result = await this.s3.send(command);
-              this.logger.info(
-                `S3 이미지 파일 삭제 (${result.$metadata.httpStatusCode}): ${selectUseditem.images[i]}`,
-              );
-            }
             if (
-              images[i] !== '' &&
-              images[i] !== selectUseditem.images[i] &&
-              selectUseditem.images[i] !== ''
+              updateUseditemInput.images[i] === '' &&
+              fetchUseditem.images[i] !== ''
             ) {
               const result = await this.s3.send(command);
               this.logger.info(
-                `S3 이미지 파일 삭제 (${result.$metadata.httpStatusCode}): ${selectUseditem.images[i]}`,
+                `S3 이미지 파일 삭제 (${result.$metadata.httpStatusCode}): ${fetchUseditem.images[i]}`,
+              );
+            }
+            if (
+              updateUseditemInput.images[i] !== '' &&
+              updateUseditemInput.images[i] !== fetchUseditem.images[i] &&
+              fetchUseditem.images[i] !== ''
+            ) {
+              const result = await this.s3.send(command);
+              this.logger.info(
+                `S3 이미지 파일 삭제 (${result.$metadata.httpStatusCode}): ${fetchUseditem.images[i]}`,
               );
             }
           }
 
-          const resultUseditem = await transactionalEntityManager.save(
-            UsedItem,
-            {
-              ...selectUseditem,
-              name,
-              contents,
-              remarks,
-              price,
-              tags,
-              images,
-              updatedAt: new Date(),
-            },
-          );
-          const resultUseditemAddress = await transactionalEntityManager.save(
-            UsedItemAddress,
-            {
-              ...useditemAddress,
-              zipcode,
-              address,
-              addressDetail,
-            },
-          );
           const updatedUseditem = {
-            ...resultUseditem,
-            useditemAddress: { ...resultUseditemAddress },
+            ...fetchUseditem,
+            ...updateUseditemInput,
+            useditemAddress: { ...updateUseditemInput.useditemAddress },
+            updateAt: new Date(),
           };
           this.logger.info(
             `-- 상품 게시글 수정 : ${JSON.stringify(updatedUseditem)} --`,
           );
-          return updatedUseditem;
+          return await transactionalEntityManager.save(
+            UsedItem,
+            updatedUseditem,
+          );
         } catch (error) {
           const msg = '상품 게시글 수정하는데 오류가 발생하였습니다.';
           this.logger.error(msg + error);
