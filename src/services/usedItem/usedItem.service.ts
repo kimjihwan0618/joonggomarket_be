@@ -21,18 +21,19 @@ import * as log4js from 'log4js';
 import { CreateUseditemQuestionInput } from './dto/createUseditemQuestion.input';
 import { UsedItemQuestion } from './entity/useditemQuestion.entity';
 import { UpdateUseditemQuestionInput } from './dto/updateUseditemQuestion.input';
-import { DeleteObjectCommand, S3 } from '@aws-sdk/client-s3';
+import { S3 } from '@aws-sdk/client-s3';
 import { UseditemQuestionAnswer } from './entity/useditemQuestionAnswer.entity';
 import { CreateUseditemQuestionAnswerInput } from './dto/createUseditemQuestionAnswer.input';
 import { UpdateUseditemQuestionAnswerInput } from './dto/updateUseditemQuestionAnswer.input';
-import { UsedItemAddress } from './entity/useditemAddress.entity';
 import { User } from '../user/entity/user.entity';
+import { FileManagerService } from '../fileManager/fileManager.service';
 
 @Injectable()
 export class UsedItemService {
   private logger = log4js.getLogger(UsedItemService.name);
   private s3: S3;
   private bucketName: string = process.env.AWS_S3_BUCKET;
+  private fileManagerService: FileManagerService;
   constructor(
     @InjectRepository(UsedItem)
     private useditemRepository: Repository<UsedItem>,
@@ -180,7 +181,6 @@ export class UsedItemService {
             },
           );
 
-          // s3에서 이미지 제거 및 업데이트
           const params = {
             Bucket: this.bucketName,
             Key: '',
@@ -189,26 +189,11 @@ export class UsedItemService {
             params.Key = fetchUseditem.images[i]
               ? fetchUseditem.images[i].slice(1)
               : 'none';
-            const command = new DeleteObjectCommand(params);
-            if (
-              updateUseditemInput.images[i] === '' &&
-              fetchUseditem.images[i] !== ''
-            ) {
-              const result = await this.s3.send(command);
-              this.logger.info(
-                `S3 이미지 파일 삭제 (${result.$metadata.httpStatusCode}): ${fetchUseditem.images[i]}`,
-              );
-            }
-            if (
-              updateUseditemInput.images[i] !== '' &&
-              updateUseditemInput.images[i] !== fetchUseditem.images[i] &&
-              fetchUseditem.images[i] !== ''
-            ) {
-              const result = await this.s3.send(command);
-              this.logger.info(
-                `S3 이미지 파일 삭제 (${result.$metadata.httpStatusCode}): ${fetchUseditem.images[i]}`,
-              );
-            }
+            await this.fileManagerService.deleteFile(
+              params,
+              fetchUseditem.images[i],
+              updateUseditemInput.images[i],
+            );
           }
 
           const updatedUseditem = {

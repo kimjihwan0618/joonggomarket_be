@@ -14,13 +14,15 @@ import * as log4js from 'log4js';
 import { CreateBoardCommentInput } from './dto/createBoardComment.input';
 import { BoardComment } from './entity/boardComment.entity';
 import { UpdateBoardCommentInput } from './dto/updateBoardComment.input';
-import { DeleteObjectCommand, S3 } from '@aws-sdk/client-s3';
+import { S3 } from '@aws-sdk/client-s3';
+import { FileManagerService } from '../fileManager/fileManager.service';
 
 @Injectable()
 export class BoardService {
   private logger = log4js.getLogger(BoardService.name);
   private s3: S3;
   private bucketName: string = process.env.AWS_S3_BUCKET;
+  private fileManagerService: FileManagerService;
   constructor(
     @InjectRepository(Board)
     private boardRepository: Repository<Board>,
@@ -164,26 +166,11 @@ export class BoardService {
             params.Key = fetchBoard.images[i]
               ? fetchBoard.images[i].slice(1)
               : 'none';
-            const command = new DeleteObjectCommand(params);
-            if (
-              updateBoardInput.images[i] === '' &&
-              fetchBoard.images[i] !== ''
-            ) {
-              const result = await this.s3.send(command);
-              this.logger.info(
-                `S3 이미지 파일 삭제 (${result.$metadata.httpStatusCode}): ${fetchBoard.images[i]}`,
-              );
-            }
-            if (
-              updateBoardInput.images[i] !== '' &&
-              updateBoardInput.images[i] !== fetchBoard.images[i] &&
-              fetchBoard.images[i] !== ''
-            ) {
-              const result = await this.s3.send(command);
-              this.logger.info(
-                `S3 이미지 파일 삭제 (${result.$metadata.httpStatusCode}): ${fetchBoard.images[i]}`,
-              );
-            }
+            await this.fileManagerService.deleteFile(
+              params,
+              fetchBoard.images[i],
+              updateBoardInput.images[i],
+            );
           }
 
           const updatedBoard = {
@@ -210,10 +197,20 @@ export class BoardService {
       if (!password) {
         throw new BadRequestException('올바른 요청이 아닙니다.');
       }
-      const board = await this.boardRepository.findOne({
+      const fetchBoard = await this.boardRepository.findOne({
         where: { _id: boardId, password },
       });
-      if (!board) {
+      const params = {
+        Bucket: this.bucketName,
+        Key: '',
+      };
+      for (let i = 0; i < fetchBoard.images.length; i++) {
+        params.Key = fetchBoard.images[i]
+          ? fetchBoard.images[i].slice(1)
+          : 'none';
+        await this.fileManagerService.deleteFile(params, 'DELETE_IMAGE', '');
+      }
+      if (!fetchBoard) {
         throw new NotFoundException('해당 게시글을 조회하는데 실패하였습니다.');
       }
 

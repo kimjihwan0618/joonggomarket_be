@@ -7,17 +7,30 @@ import { CreateUserInput } from './dto/createUser.input';
 import { UserPoint } from './entity/userPoint.entity';
 import * as log4js from 'log4js';
 import { UpdateUserInput } from './dto/updateUser.input';
+import { S3 } from '@aws-sdk/client-s3';
+import { FileManagerService } from '../fileManager/fileManager.service';
 
 @Injectable()
 export class UserService {
   private logger = log4js.getLogger(UserService.name);
+  private s3: S3;
+  private bucketName: string = process.env.AWS_S3_BUCKET;
+  private fileManagerService: FileManagerService;
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
 
     @InjectRepository(UserPoint)
     private userPointRepository: Repository<UserPoint>,
-  ) {}
+  ) {
+    this.s3 = new S3({
+      region: process.env.AWS_REGION,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+    });
+  }
 
   async createUser(createUserInput: CreateUserInput): Promise<User> {
     return await this.userRepository.manager.transaction(
@@ -59,9 +72,20 @@ export class UserService {
             relations: ['userPoint'],
           });
 
+          const params = {
+            Bucket: this.bucketName,
+            Key: fetchUser.picture ? fetchUser.picture.slice(1) : 'none',
+          };
+
+          await this.fileManagerService.deleteFile(
+            params,
+            fetchUser.picture,
+            updateUserInput.picture,
+          );
+
           const updatedUser = {
             ...fetchUser,
-            ...updateUserInput,
+            picture: updateUserInput.picture,
             updateAt: new Date(),
           };
 

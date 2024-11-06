@@ -2,9 +2,9 @@ import { InputType, Field } from '@nestjs/graphql';
 
 @InputType()
 export class UpdateUserInput {
-  @Field()
+  @Field({ nullable: true })
   name: string;
 
-  @Field()
+  @Field({ nullable: true })
   picture: string;
 }

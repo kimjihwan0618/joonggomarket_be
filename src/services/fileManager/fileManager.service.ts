@@ -1,9 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, EntityManager } from 'typeorm';
 import * as log4js from 'log4js';
 import { FileManager } from './entity/fileManager.entity';
-import { ObjectCannedACL, S3 } from '@aws-sdk/client-s3';
+import {
+  DeleteObjectCommand,
+  DeleteObjectCommandInput,
+  ObjectCannedACL,
+  S3,
+} from '@aws-sdk/client-s3';
 import { v4 as uuid } from 'uuid';
 import { format } from 'date-fns';
 
@@ -67,5 +72,31 @@ export class FileManagerService {
         }
       },
     );
+  }
+
+  async deleteFile(
+    params: DeleteObjectCommandInput,
+    oldImage: string,
+    newImage: string,
+  ): Promise<void> {
+    try {
+      const command = new DeleteObjectCommand(params);
+      if (newImage === '' && oldImage) {
+        const result = await this.s3.send(command);
+        this.logger.info(
+          `S3 이미지 파일 삭제 (${result.$metadata.httpStatusCode}): ${oldImage}`,
+        );
+      }
+      if (newImage !== '' && newImage !== oldImage && oldImage !== '') {
+        const result = await this.s3.send(command);
+        this.logger.info(
+          `S3 이미지 파일 삭제 (${result.$metadata.httpStatusCode}): ${oldImage}`,
+        );
+      }
+    } catch (error) {
+      const msg = 'S3에서 이미지를 삭제 하는데 오류가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
+    }
   }
 }
