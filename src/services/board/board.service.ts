@@ -325,10 +325,10 @@ export class BoardService {
     password: string,
   ): Promise<boolean> {
     try {
-      const board = await this.boardCommentRepository.findOne({
+      const boardComment = await this.boardCommentRepository.findOne({
         where: { _id: boardCommentId, password },
       });
-      if (!board) {
+      if (!boardComment) {
         throw new NotFoundException('게시글을 조회하는데 실패하였습니다.');
       }
       await this.boardCommentRepository.delete(boardCommentId);

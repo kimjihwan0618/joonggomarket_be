@@ -139,11 +139,15 @@ export class UsedItemResolver {
   }
 
   @UseGuards(GqlAuthGuard)
-  @Mutation(() => Int)
+  @Mutation(() => ID)
   async deleteUseditemQuestion(
     @Args('useditemQuestionId', { type: () => ID }) useditemQuestionId: string,
-  ): Promise<number> {
-    return this.usedItemService.deleteUseditemQuestion(useditemQuestionId);
+    @CurrentUser() user: User,
+  ): Promise<string> {
+    return this.usedItemService.deleteUseditemQuestion(
+      useditemQuestionId,
+      user,
+    );
   }
 
   @UseGuards(GqlAuthGuard)
@@ -178,13 +182,15 @@ export class UsedItemResolver {
   }
 
   @UseGuards(GqlAuthGuard)
-  @Mutation(() => String)
+  @Mutation(() => ID)
   async deleteUseditemQuestionAnswer(
     @Args('useditemQuestionAnswerId', { type: () => ID })
     useditemQuestionAnswerId: string,
+    @CurrentUser() user: User,
   ): Promise<string> {
     return this.usedItemService.deleteUseditemQuestionAnswer(
       useditemQuestionAnswerId,
+      user,
     );
   }
 

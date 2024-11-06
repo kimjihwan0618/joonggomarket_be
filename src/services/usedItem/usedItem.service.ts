@@ -339,8 +339,24 @@ export class UsedItemService {
     );
   }
 
-  async deleteUseditemQuestion(useditemQuestionId: string): Promise<number> {
-    return 0;
+  async deleteUseditemQuestion(
+    useditemQuestionId: string,
+    user: User,
+  ): Promise<string> {
+    try {
+      const useditemQuestion = await this.useditemQuestionRepository.findOne({
+        where: { _id: useditemQuestionId, user: { _id: user._id } },
+      });
+      if (!useditemQuestion) {
+        throw new NotFoundException('상품 질문을 조회하는데 실패하였습니다.');
+      }
+      await this.useditemQuestionRepository.delete(useditemQuestionId);
+      return useditemQuestionId;
+    } catch (error) {
+      const msg = '상품 질문 삭제하는데 오류가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
+    }
   }
 
   async updateUseditemQuestion(
@@ -423,8 +439,27 @@ export class UsedItemService {
 
   async deleteUseditemQuestionAnswer(
     useditemQuestionAnswerId: string,
+    user: User,
   ): Promise<string> {
-    return '';
+    try {
+      const useditemQuestionAnswer =
+        await this.useditemQuestionAnswerRepository.findOne({
+          where: { _id: useditemQuestionAnswerId, user: { _id: user._id } },
+        });
+      if (!useditemQuestionAnswer) {
+        throw new NotFoundException(
+          '상품 질문 답변을 조회하는데 실패하였습니다.',
+        );
+      }
+      await this.useditemQuestionAnswerRepository.delete(
+        useditemQuestionAnswerId,
+      );
+      return useditemQuestionAnswerId;
+    } catch (error) {
+      const msg = '상품 질문 답변 삭제하는데 오류가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
+    }
   }
 
   async updateUseditemQuestionAnswer(
