@@ -8,6 +8,7 @@ import {
   JoinColumn,
   OneToMany,
   ManyToMany,
+  ManyToOne,
 } from 'typeorm';
 import { Int } from '@nestjs/graphql';
 import { UsedItemAddress } from './useditemAddress.entity';
@@ -87,7 +88,7 @@ export class UsedItem {
 
   @Field(() => User)
   @JoinColumn()
-  @OneToOne(() => User, (user) => user.sold_useditem, {
+  @ManyToOne(() => User, (user) => user.sold_useditem, {
     cascade: true,
     onDelete: 'CASCADE',
   })

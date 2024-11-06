@@ -80,7 +80,7 @@ export class UsedItemService {
       const currentPage = page || 1;
       const options: FindManyOptions<UsedItem> = {
         relations: ['useditemAddress', 'seller'],
-        where: whereConditions.length > 0 ? whereConditions : undefined,
+        where: whereConditions,
         skip: (currentPage - 1) * LIMIT,
         take: LIMIT,
       };
@@ -112,7 +112,16 @@ export class UsedItemService {
   }
 
   async fetchUseditemsOfTheBest(): Promise<UsedItem[]> {
-    return [new UsedItem(), new UsedItem()];
+    try {
+      const query = this.useditemRepository.createQueryBuilder('useditem');
+      query.orderBy('useditem.pickedCount', 'DESC').limit(4);
+
+      return query.getMany();
+    } catch (error) {
+      const msg = '상품 게시글 TOP 4를 조회하는데 오류가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
+    }
   }
 
   async fetchUseditemQuestions(
@@ -167,8 +176,89 @@ export class UsedItemService {
   async updateUseditem(
     updateUseditemInput: UpdateUseditemInput,
     useditemId: string,
-  ): Promise<number> {
-    return 0;
+  ): Promise<UsedItem> {
+    return await this.useditemRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          const fetchUseditem = await transactionalEntityManager.findOne(
+            UsedItem,
+            {
+              where: { _id: useditemId },
+              relations: ['useditemAddress'],
+            },
+          );
+
+          const { useditemAddress, ...selectUseditem } = fetchUseditem;
+          const { name, remarks, contents, price, tags, images } =
+            updateUseditemInput;
+          const { zipcode, address, addressDetail } =
+            updateUseditemInput.useditemAddress;
+
+          // s3에서 이미지 제거 및 업데이트
+          const params = {
+            Bucket: this.bucketName,
+            Key: '',
+          };
+          for (let i = 0; i < 3; i++) {
+            params.Key = selectUseditem.images[i]
+              ? selectUseditem.images[i].slice(1)
+              : 'none';
+            const command = new DeleteObjectCommand(params);
+            if (images[i] === '' && selectUseditem.images[i] !== '') {
+              const result = await this.s3.send(command);
+              this.logger.info(
+                `S3 이미지 파일 삭제 (${result.$metadata.httpStatusCode}): ${selectUseditem.images[i]}`,
+              );
+            }
+            if (
+              images[i] !== '' &&
+              images[i] !== selectUseditem.images[i] &&
+              selectUseditem.images[i] !== ''
+            ) {
+              const result = await this.s3.send(command);
+              this.logger.info(
+                `S3 이미지 파일 삭제 (${result.$metadata.httpStatusCode}): ${selectUseditem.images[i]}`,
+              );
+            }
+          }
+
+          const resultUseditem = await transactionalEntityManager.save(
+            UsedItem,
+            {
+              ...selectUseditem,
+              name,
+              contents,
+              remarks,
+              price,
+              tags,
+              images,
+              updatedAt: new Date(),
+            },
+          );
+          const resultUseditemAddress = await transactionalEntityManager.save(
+            UsedItemAddress,
+            {
+              ...useditemAddress,
+              zipcode,
+              address,
+              addressDetail,
+            },
+          );
+          const updatedUseditem = {
+            ...resultUseditem,
+            useditemAddress: { ...resultUseditemAddress },
+          };
+          this.logger.info(
+            `-- 상품 게시글 수정 : ${JSON.stringify(updatedUseditem)} --`,
+          );
+          return updatedUseditem;
+        } catch (error) {
+          const msg = '상품 게시글 수정하는데 오류가 발생하였습니다.';
+          this.logger.error(msg + error);
+          throw new InternalServerErrorException(msg);
+        }
+      },
+    );
   }
 
   async toggleUseditemPick(useditemId: string): Promise<number> {

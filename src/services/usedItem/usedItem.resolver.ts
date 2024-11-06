@@ -105,12 +105,12 @@ export class UsedItemResolver {
   }
 
   @UseGuards(GqlAuthGuard)
-  @Mutation(() => Int)
+  @Mutation(() => UsedItem)
   async updateUseditem(
     @Args('updateUseditemInput')
     updateUseditemInput: UpdateUseditemInput,
     @Args('useditemId', { type: () => ID }) useditemId: string,
-  ): Promise<number> {
+  ): Promise<UsedItem> {
     return this.usedItemService.updateUseditem(updateUseditemInput, useditemId);
   }
 
