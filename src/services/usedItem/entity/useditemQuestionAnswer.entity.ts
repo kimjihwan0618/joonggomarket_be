@@ -1,7 +1,8 @@
-import { Field, HideField, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { GraphQLDateTime } from 'graphql-scalars';
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { UsedItemQuestion } from './useditemQuestion.entity';
+import { User } from '@/services/user/entity/user.entity';
 
 @ObjectType()
 @Entity('useditem_question_answer')
@@ -12,20 +13,7 @@ export class UseditemQuestionAnswer {
 
   @Field()
   @Column()
-  writer: string;
-
-  @HideField()
-  @Field()
-  @Column()
-  password: string;
-
-  @Field()
-  @Column()
   contents: string;
-
-  @Field()
-  @Column('float')
-  rating: number;
 
   @Field(() => GraphQLDateTime)
   @Column({ type: 'timestamp', default: () => 'NOW()' })
@@ -39,10 +27,17 @@ export class UseditemQuestionAnswer {
   @Column({ type: 'timestamp', nullable: true, default: null })
   deletedAt: Date;
 
-  @HideField()
-  @ManyToOne(() => UsedItemQuestion, (question) => question.questionAnswers, {
+  @Field(() => User)
+  @ManyToOne(() => User, (user) => user.question_answers, {
     nullable: false,
     onDelete: 'CASCADE',
   })
-  question: UsedItemQuestion;
+  user: User;
+
+  @Field(() => UsedItemQuestion)
+  @ManyToOne(() => UsedItemQuestion, (question) => question.question_answers, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
+  useditem_question: UsedItemQuestion;
 }

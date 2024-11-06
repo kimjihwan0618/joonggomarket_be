@@ -5,9 +5,13 @@ import { BoardService } from './board.service';
 import { BoardResolver } from './board.resolver';
 import { BoardAddress } from './entity/boardAddress.entity';
 import { BoardComment } from './entity/boardComment.entity';
+import { FileManagerModule } from '../fileManager/fileManager.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Board, BoardAddress, BoardComment])],
+  imports: [
+    TypeOrmModule.forFeature([Board, BoardAddress, BoardComment]),
+    FileManagerModule,
+  ],
   providers: [BoardService, BoardResolver],
 })
 export class BoardModule {}

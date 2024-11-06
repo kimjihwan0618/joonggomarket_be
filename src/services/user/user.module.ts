@@ -4,9 +4,10 @@ import { User } from './entity/user.entity';
 import { UserService } from './user.service';
 import { UserResolver } from './user.resolver';
 import { UserPoint } from './entity/userPoint.entity';
+import { FileManagerModule } from '../fileManager/fileManager.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, UserPoint])],
+  imports: [TypeOrmModule.forFeature([User, UserPoint]), FileManagerModule],
   providers: [UserService, UserResolver],
   exports: [UserService],
 })

@@ -40,11 +40,11 @@ export class UsedItemService {
     private fileManagerService: FileManagerService,
     private userService: UserService,
 
-    // @InjectRepository(BoardAddress)
-    // private boardAddressRepository: Repository<BoardAddress>,
+    @InjectRepository(UsedItemQuestion)
+    private useditemQuestionRepository: Repository<UsedItemQuestion>,
 
-    // @InjectRepository(BoardComment)
-    // private boardCommentRepository: Repository<BoardComment>,
+    @InjectRepository(UseditemQuestionAnswer)
+    private useditemQuestionAnswerRepository: Repository<UseditemQuestionAnswer>,
   ) {
     this.s3 = new S3({
       region: process.env.AWS_REGION,
@@ -131,14 +131,52 @@ export class UsedItemService {
     useditemId: string,
     page: number,
   ): Promise<UsedItemQuestion[]> {
-    return [new UsedItemQuestion(), new UsedItemQuestion()];
+    try {
+      const whereConditions: FindOptionsWhere<UsedItemQuestion> = {};
+      if (useditemId) {
+        whereConditions.useditem = { _id: useditemId };
+      }
+
+      const LIMIT = 10;
+      const currentPage = page || 1;
+      const options: FindManyOptions<UsedItemQuestion> = {
+        relations: ['user'],
+        where: whereConditions,
+        skip: (currentPage - 1) * LIMIT,
+        take: LIMIT,
+      };
+      return this.useditemQuestionRepository.find(options);
+    } catch (error) {
+      const msg = '상품 질문을 조회하는데 오류가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
+    }
   }
 
   async fetchUseditemQuestionAnswers(
     useditemQuestionId: string,
     page: number,
   ): Promise<UseditemQuestionAnswer[]> {
-    return [new UseditemQuestionAnswer(), new UseditemQuestionAnswer()];
+    try {
+      const whereConditions: FindOptionsWhere<UseditemQuestionAnswer> = {};
+      if (useditemQuestionId) {
+        whereConditions.useditem_question = { _id: useditemQuestionId };
+      }
+
+      const LIMIT = 10;
+      const currentPage = page || 1;
+      const options: FindManyOptions<UseditemQuestionAnswer> = {
+        relations: ['user'],
+        where: whereConditions,
+        skip: (currentPage - 1) * LIMIT,
+        take: LIMIT,
+      };
+      return this.useditemQuestionAnswerRepository.find(options);
+    } catch (error) {
+      const msg = '상품 질문 답변을 조회하는데 오류가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
+    }
   }
 
   async createUseditem(
@@ -240,18 +278,15 @@ export class UsedItemService {
           );
 
           if (isPicked) {
-            // 이미 찜한 상태라면 찜을 해제
             usedItem.pickers = usedItem.pickers.filter(
               (picker) => picker._id !== fetchUser._id,
             );
             usedItem.pickedCount = (usedItem.pickedCount || 0) - 1;
           } else {
-            // 찜하지 않은 상태라면 찜 추가
             usedItem.pickers.push(fetchUser);
             usedItem.pickedCount = (usedItem.pickedCount || 0) + 1;
           }
 
-          // 트랜잭션을 통해 UsedItem만 저장하여 관계를 업데이트
           const resultUseditem = await transactionalEntityManager.save(
             UsedItem,
             usedItem,
@@ -270,8 +305,38 @@ export class UsedItemService {
   async createUseditemQuestion(
     createUseditemQuestionInput: CreateUseditemQuestionInput,
     useditemId: string,
+    user: User,
   ): Promise<UsedItemQuestion> {
-    return new UsedItemQuestion();
+    return await this.useditemQuestionRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          const fetchUser: User = await this.userService.findById(user._id);
+          const useditem = await transactionalEntityManager.findOne(UsedItem, {
+            where: { _id: useditemId },
+          });
+          if (!useditem) {
+            throw new Error('상품을 찾을 수 없습니다.');
+          }
+
+          const useditemQuestion = this.useditemQuestionRepository.create({
+            ...createUseditemQuestionInput,
+            user: fetchUser,
+            useditem,
+          });
+          this.logger.info(
+            `-- 상품 질문 생성 : ${JSON.stringify(useditemQuestion)} --`,
+          );
+          return await transactionalEntityManager.save(
+            UsedItemQuestion,
+            useditemQuestion,
+          );
+        } catch (error) {
+          const msg = '상품 질문을 생성하는중 오류가 발생하였습니다.';
+          this.logger.error(msg + error);
+          throw new InternalServerErrorException(msg);
+        }
+      },
+    );
   }
 
   async deleteUseditemQuestion(useditemQuestionId: string): Promise<number> {
@@ -281,15 +346,79 @@ export class UsedItemService {
   async updateUseditemQuestion(
     updateUseditemQuestionInput: UpdateUseditemQuestionInput,
     useditemQuestionId: string,
+    user: User,
   ): Promise<UsedItemQuestion> {
-    return new UsedItemQuestion();
+    return await this.useditemQuestionRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          const fetchUseditemQuestion =
+            await transactionalEntityManager.findOne(UsedItemQuestion, {
+              where: { _id: useditemQuestionId, user: { _id: user._id } },
+            });
+
+          if (!fetchUseditemQuestion) {
+            throw new NotFoundException(
+              '상품 질문을 조회하는 도중 오류가 발생하였습니다.',
+            );
+          }
+
+          const updatedUseditemQuestion = {
+            ...fetchUseditemQuestion,
+            ...updateUseditemQuestionInput,
+            updatedAt: new Date(),
+          };
+          const result = await transactionalEntityManager.save(
+            UsedItemQuestion,
+            updatedUseditemQuestion,
+          );
+          return result;
+        } catch (error) {
+          const msg = '상품 질문을 수정하는데 오류가 발생하였습니다.';
+          this.logger.error(msg + error);
+          throw new InternalServerErrorException(msg);
+        }
+      },
+    );
   }
 
   async createUseditemQuestionAnswer(
     createUseditemQuestionAnswerInput: CreateUseditemQuestionAnswerInput,
     useditemQuestionId: string,
+    user: User,
   ): Promise<UseditemQuestionAnswer> {
-    return new UseditemQuestionAnswer();
+    return await this.useditemQuestionAnswerRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          const fetchUser: User = await this.userService.findById(user._id);
+          const useditem_question = await transactionalEntityManager.findOne(
+            UsedItemQuestion,
+            {
+              where: { _id: useditemQuestionId },
+            },
+          );
+          if (!useditem_question) {
+            throw new Error('상품 질문을 찾을 수 없습니다.');
+          }
+          const useditemQuestionAnswer =
+            await transactionalEntityManager.create(UseditemQuestionAnswer, {
+              ...createUseditemQuestionAnswerInput,
+              user: fetchUser,
+              useditem_question,
+            });
+          this.logger.info(
+            `-- 상품 질문 답변 생성 : ${JSON.stringify(useditemQuestionAnswer)} --`,
+          );
+          return await transactionalEntityManager.save(
+            UseditemQuestionAnswer,
+            useditemQuestionAnswer,
+          );
+        } catch (error) {
+          const msg = '상품 질문 답변을 생성하는중 오류가 발생하였습니다.';
+          this.logger.error(msg + error);
+          throw new InternalServerErrorException(msg);
+        }
+      },
+    );
   }
 
   async deleteUseditemQuestionAnswer(

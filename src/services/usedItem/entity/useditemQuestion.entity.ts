@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { UsedItem } from './usedItem.entity';
 import { UseditemQuestionAnswer } from './useditemQuestionAnswer.entity';
+import { User } from '@/services/user/entity/user.entity';
 
 @ObjectType()
 @Entity('useditem_question')
@@ -33,21 +34,28 @@ export class UsedItemQuestion {
   @Column({ type: 'timestamp', nullable: true, default: null })
   deletedAt: Date;
 
-  @HideField()
-  @ManyToOne(() => UsedItem, (usedItem) => usedItem.questions, {
+  @Field(() => UsedItem)
+  @ManyToOne(() => UsedItem, (useditem) => useditem.questions, {
     nullable: false,
     onDelete: 'CASCADE',
   })
-  usedItem: UsedItem;
+  useditem: UsedItem;
+
+  @Field(() => User)
+  @ManyToOne(() => User, (user) => user.questions, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
+  user: User;
 
   @OneToMany(
     () => UseditemQuestionAnswer,
-    (questionAnswer) => questionAnswer.question,
+    (question_answers) => question_answers.useditem_question,
     {
       cascade: true,
       onDelete: 'CASCADE',
     },
   )
-  @Field(() => [UsedItemQuestion], { nullable: true })
-  questionAnswers: UseditemQuestionAnswer[];
+  @HideField()
+  question_answers: UseditemQuestionAnswer[];
 }

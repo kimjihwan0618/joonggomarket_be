@@ -312,10 +312,9 @@ export class BoardService {
           );
           return result;
         } catch (error) {
-          this.logger.error(`-- 게시글 댓글 수정 Error: ${error} --`);
-          throw new InternalServerErrorException(
-            '게시글 댓글 수정 중 오류가 발생하였습니다.',
-          );
+          const msg = '게시글 댓글 수정하는데 오류가 발생하였습니다.';
+          this.logger.error(msg + error);
+          throw new InternalServerErrorException(msg);
         }
       },
     );
@@ -335,10 +334,9 @@ export class BoardService {
       await this.boardCommentRepository.delete(boardCommentId);
       return true;
     } catch (error) {
-      this.logger.error(`-- 게시글 댓글 삭제 Error: ${error} --`);
-      throw new InternalServerErrorException(
-        '게시글 댓글 삭제 중 오류가 발생하였습니다.',
-      );
+      const msg = '게시글 댓글 삭제하는데 오류가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
     }
   }
 
@@ -364,10 +362,9 @@ export class BoardService {
           );
           return resultBoard.likeCount;
         } catch (error) {
-          this.logger.error(`-- 게시글 likeBoard Error: ${error} --`);
-          throw new InternalServerErrorException(
-            '게시글 좋아요 중에 오류가 발생하였습니다.',
-          );
+          const msg = '게시글 좋아요 중에 오류가 발생하였습니다.';
+          this.logger.error(msg + error);
+          throw new InternalServerErrorException(msg);
         }
       },
     );
@@ -395,10 +392,9 @@ export class BoardService {
           );
           return resultBoard.dislikeCount;
         } catch (error) {
-          this.logger.error(`-- 게시글 dislikeBoard Error: ${error} --`);
-          throw new InternalServerErrorException(
-            '게시글 싫어요 중에 오류가 발생하였습니다.',
-          );
+          const msg = '게시글 싫어요 중에 오류가 발생하였습니다.';
+          this.logger.error(msg + error);
+          throw new InternalServerErrorException(msg);
         }
       },
     );

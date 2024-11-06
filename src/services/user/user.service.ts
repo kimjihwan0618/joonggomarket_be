@@ -15,10 +15,10 @@ export class UserService {
   private logger = log4js.getLogger(UserService.name);
   private s3: S3;
   private bucketName: string = process.env.AWS_S3_BUCKET;
-  private fileManagerService: FileManagerService;
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private fileManagerService: FileManagerService,
 
     @InjectRepository(UserPoint)
     private userPointRepository: Repository<UserPoint>,

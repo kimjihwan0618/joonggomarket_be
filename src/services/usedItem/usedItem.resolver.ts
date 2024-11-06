@@ -129,10 +129,12 @@ export class UsedItemResolver {
     @Args('createUseditemQuestionInput')
     createUseditemQuestionInput: CreateUseditemQuestionInput,
     @Args('useditemId', { type: () => ID }) useditemId: string,
+    @CurrentUser() user: User,
   ): Promise<UsedItemQuestion> {
     return this.usedItemService.createUseditemQuestion(
       createUseditemQuestionInput,
       useditemId,
+      user,
     );
   }
 
@@ -150,24 +152,28 @@ export class UsedItemResolver {
     @Args('updateUseditemQuestionInput')
     updateUseditemQuestionInput: UpdateUseditemQuestionInput,
     @Args('useditemQuestionId', { type: () => ID }) useditemQuestionId: string,
+    @CurrentUser() user: User,
   ): Promise<UsedItemQuestion> {
     return this.usedItemService.updateUseditemQuestion(
       updateUseditemQuestionInput,
       useditemQuestionId,
+      user,
     );
   }
 
   @UseGuards(GqlAuthGuard)
   @Mutation(() => UseditemQuestionAnswer)
   async createUseditemQuestionAnswer(
-    @Args('createUseditemQuestionInput')
+    @Args('createUseditemQuestionAnswerInput')
     createUseditemQuestionAnswerInput: CreateUseditemQuestionAnswerInput,
-    @Args('useditemQuestionAnswerId', { type: () => ID })
+    @Args('useditemQuestionId', { type: () => ID })
     useditemQuestionId: string,
+    @CurrentUser() user: User,
   ): Promise<UseditemQuestionAnswer> {
     return this.usedItemService.createUseditemQuestionAnswer(
       createUseditemQuestionAnswerInput,
       useditemQuestionId,
+      user,
     );
   }
 

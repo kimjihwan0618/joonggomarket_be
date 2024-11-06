@@ -13,6 +13,8 @@ import {
 import { UserPoint } from './userPoint.entity';
 import { PointTransaction } from '@/services/pointTransaction/entity/pointTransaction.entity';
 import { UsedItem } from '@/services/usedItem/entity/usedItem.entity';
+import { UsedItemQuestion } from '@/services/usedItem/entity/useditemQuestion.entity';
+import { UseditemQuestionAnswer } from '@/services/usedItem/entity/useditemQuestionAnswer.entity';
 
 @ObjectType()
 @Entity('user_list')
@@ -88,4 +90,22 @@ export class User {
   @JoinColumn()
   @Field(() => UserPoint, { nullable: true })
   userPoint: UserPoint;
+
+  @OneToMany(() => UsedItemQuestion, (question) => question.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  @HideField()
+  questions: UsedItemQuestion[];
+
+  @OneToMany(
+    () => UseditemQuestionAnswer,
+    (question_answers) => question_answers.user,
+    {
+      cascade: true,
+      onDelete: 'CASCADE',
+    },
+  )
+  @HideField()
+  question_answers: UseditemQuestionAnswer[];
 }

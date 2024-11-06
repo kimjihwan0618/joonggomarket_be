@@ -98,7 +98,7 @@ export class UsedItem {
   @ManyToMany(() => User, (user) => user.picked_useditems)
   pickers: User[];
 
-  @OneToMany(() => UsedItemQuestion, (question) => question.usedItem, {
+  @OneToMany(() => UsedItemQuestion, (question) => question.useditem, {
     cascade: true,
     onDelete: 'CASCADE',
   })
