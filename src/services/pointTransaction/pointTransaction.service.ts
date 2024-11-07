@@ -108,11 +108,9 @@ export class PointTransactionService {
           const fetchUseditem: UsedItem =
             await this.usedItemService.fetchUsedItem(useritemId);
           if (buyer._id === fetchUseditem.seller._id) {
-            this.logger.error('자신의 상품은 구매할 수 없습니다.');
             throw new BadRequestException('자신의 상품은 구매할 수 없습니다.');
           }
           if (buyer.userPoint.amount < fetchUseditem.price) {
-            this.logger.error('포인트가 부족합니다.');
             throw new BadRequestException('포인트가 부족합니다.');
           } else {
             const resultBuyer: User = await this.userService.updateUserPoint(
@@ -130,9 +128,15 @@ export class PointTransactionService {
             console.log('비교를해보자---------------------------222222');
             console.log('비교를해보자---------------------------222222');
             console.log('비교를해보자---------------------------222222');
+            const updateUseditem = {
+              ...fetchUseditem,
+              // buyer: { ...resultBuyer },
+              soldAt: new Date(),
+              updateAt: new Date(),
+            };
             const resultUseditem = await transactionalEntityManager.save(
               UsedItem,
-              { ...fetchUseditem, buyer: resultBuyer, soldAt: new Date() },
+              updateUseditem,
             );
             const resultBuyerPointTransaction =
               await transactionalEntityManager.create(PointTransaction, {

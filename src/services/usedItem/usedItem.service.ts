@@ -58,7 +58,7 @@ export class UsedItemService {
   async fetchUsedItem(_id: string): Promise<UsedItem> {
     return this.useditemRepository.findOne({
       where: { _id },
-      relations: ['useditemAddress', 'seller', 'seller.userPoint'],
+      relations: ['useditemAddress', 'seller', 'buyer', 'seller.userPoint'],
     });
   }
 
