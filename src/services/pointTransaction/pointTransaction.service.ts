@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, EntityManager } from 'typeorm';
 import * as log4js from 'log4js';
@@ -6,6 +10,8 @@ import { PointTransaction } from './entity/pointTransaction.entity';
 import axios from 'axios';
 import { UserService } from '../user/user.service';
 import { User } from '../user/entity/user.entity';
+import { UsedItemService } from '../usedItem/useditem.service';
+import { UsedItem } from '../usedItem/entity/usedItem.entity';
 
 @Injectable()
 export class PointTransactionService {
@@ -17,6 +23,7 @@ export class PointTransactionService {
     @InjectRepository(PointTransaction)
     private pointTransactionRepository: Repository<PointTransaction>,
     private userService: UserService,
+    private usedItemService: UsedItemService,
   ) {}
 
   private async getAccessToken(): Promise<string> {
@@ -51,7 +58,7 @@ export class PointTransactionService {
 
   async createPointTransactionOfLoading(
     impUid: string,
-    user_id: any,
+    user: User,
   ): Promise<PointTransaction> {
     const token = await this.getAccessToken();
 
@@ -63,8 +70,8 @@ export class PointTransactionService {
           );
           const { imp_uid, amount } = response?.data?.response;
           if (imp_uid) {
-            const user: User = await this.userService.updateUserPoint(
-              user_id,
+            const resultUser: User = await this.userService.updateUserPoint(
+              user,
               amount,
             );
             const pointTransaction = this.pointTransactionRepository.create({
@@ -86,6 +93,66 @@ export class PointTransactionService {
           const msg = '결제정보를 처리하는도중 오류가 발생하였습니다.';
           this.logger.error(msg + error);
           throw new InternalServerErrorException(msg);
+        }
+      },
+    );
+  }
+
+  async createPointTransactionOfBuyingAndSelling(
+    useritemId: string,
+    buyer: User,
+  ): Promise<UsedItem> {
+    return await this.pointTransactionRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          const fetchUseditem: UsedItem =
+            await this.usedItemService.fetchUsedItem(useritemId);
+          if (buyer._id === fetchUseditem.seller._id) {
+            this.logger.error('자신의 상품은 구매할 수 없습니다.');
+            throw new BadRequestException('자신의 상품은 구매할 수 없습니다.');
+          }
+          if (buyer.userPoint.amount < fetchUseditem.price) {
+            this.logger.error('포인트가 부족합니다.');
+            throw new BadRequestException('포인트가 부족합니다.');
+          } else {
+            const resultBuyer: User = await this.userService.updateUserPoint(
+              buyer,
+              -fetchUseditem.price,
+            );
+            const resultSeller: User = await this.userService.updateUserPoint(
+              fetchUseditem.seller,
+              fetchUseditem.price,
+            );
+            console.log('비교를해보자---------------------------');
+            console.log('비교를해보자---------------------------');
+            console.log(fetchUseditem);
+            console.log(resultBuyer);
+            console.log('비교를해보자---------------------------222222');
+            console.log('비교를해보자---------------------------222222');
+            console.log('비교를해보자---------------------------222222');
+            const resultUseditem = await transactionalEntityManager.save(
+              UsedItem,
+              { ...fetchUseditem, buyer: resultBuyer, soldAt: new Date() },
+            );
+            const resultBuyerPointTransaction =
+              await transactionalEntityManager.create(PointTransaction, {
+                status: '구매',
+                amount: -fetchUseditem.price,
+                balance: resultBuyer.userPoint.amount,
+                user: resultBuyer,
+              });
+            const resultSellerPointTransaction =
+              await transactionalEntityManager.create(PointTransaction, {
+                status: '판매',
+                amount: fetchUseditem.price,
+                balance: resultSeller.userPoint.amount,
+                user: resultSeller,
+              });
+            return resultUseditem;
+          }
+        } catch (error) {
+          this.logger.error(error.message + error);
+          throw new InternalServerErrorException(error.message);
         }
       },
     );

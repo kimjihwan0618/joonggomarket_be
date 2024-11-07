@@ -21,5 +21,6 @@ import { FileManagerModule } from '../fileManager/fileManager.module';
     UserModule,
   ],
   providers: [UsedItemService, UsedItemResolver],
+  exports: [UsedItemService],
 })
 export class UsedItemModule {}

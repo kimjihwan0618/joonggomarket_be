@@ -58,7 +58,7 @@ export class UsedItemService {
   async fetchUsedItem(_id: string): Promise<UsedItem> {
     return this.useditemRepository.findOne({
       where: { _id },
-      relations: ['useditemAddress', 'seller'],
+      relations: ['useditemAddress', 'seller', 'seller.userPoint'],
     });
   }
 
@@ -258,12 +258,27 @@ export class UsedItemService {
     );
   }
 
+  async updateUseditemSoldAt(useditem: UsedItem): Promise<UsedItem> {
+    return await this.useditemRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          return await transactionalEntityManager.save(UsedItem, {
+            ...useditem,
+            soldAt: new Date(),
+          });
+        } catch (error) {
+          const msg = '상품 구매처리하는데 오류가 발생하였습니다.';
+          this.logger.error(msg + error);
+          throw new InternalServerErrorException(msg);
+        }
+      },
+    );
+  }
+
   async toggleUseditemPick(useditemId: string, user: User): Promise<number> {
     return await this.useditemRepository.manager.transaction(
       async (transactionalEntityManager: EntityManager) => {
         try {
-          const fetchUser: User =
-            await this.userService.findUserWithPickedUsedItems(user._id);
           const usedItem = await this.useditemRepository.findOne({
             where: { _id: useditemId },
             relations: ['pickers'],
@@ -273,17 +288,17 @@ export class UsedItemService {
             throw new NotFoundException('상품 조회결과가 없습니다.');
           }
 
-          const isPicked = fetchUser.picked_useditems.some(
+          const isPicked = user.picked_useditems.some(
             (item) => item._id === useditemId,
           );
 
           if (isPicked) {
             usedItem.pickers = usedItem.pickers.filter(
-              (picker) => picker._id !== fetchUser._id,
+              (picker) => picker._id !== user._id,
             );
             usedItem.pickedCount = (usedItem.pickedCount || 0) - 1;
           } else {
-            usedItem.pickers.push(fetchUser);
+            usedItem.pickers.push(user);
             usedItem.pickedCount = (usedItem.pickedCount || 0) + 1;
           }
 
@@ -310,7 +325,6 @@ export class UsedItemService {
     return await this.useditemQuestionRepository.manager.transaction(
       async (transactionalEntityManager: EntityManager) => {
         try {
-          const fetchUser: User = await this.userService.findById(user._id);
           const useditem = await transactionalEntityManager.findOne(UsedItem, {
             where: { _id: useditemId },
           });
@@ -320,7 +334,7 @@ export class UsedItemService {
 
           const useditemQuestion = this.useditemQuestionRepository.create({
             ...createUseditemQuestionInput,
-            user: fetchUser,
+            user,
             useditem,
           });
           this.logger.info(
@@ -405,7 +419,6 @@ export class UsedItemService {
     return await this.useditemQuestionAnswerRepository.manager.transaction(
       async (transactionalEntityManager: EntityManager) => {
         try {
-          const fetchUser: User = await this.userService.findById(user._id);
           const useditem_question = await transactionalEntityManager.findOne(
             UsedItemQuestion,
             {
@@ -418,7 +431,7 @@ export class UsedItemService {
           const useditemQuestionAnswer =
             await transactionalEntityManager.create(UseditemQuestionAnswer, {
               ...createUseditemQuestionAnswerInput,
-              user: fetchUser,
+              user,
               useditem_question,
             });
           this.logger.info(
@@ -470,7 +483,6 @@ export class UsedItemService {
     return await this.useditemQuestionAnswerRepository.manager.transaction(
       async (transactionalEntityManager: EntityManager) => {
         try {
-          const fetchUser: User = await this.userService.findById(user._id);
           const fetchUseditemQuestionAnswer =
             await transactionalEntityManager.findOne(UseditemQuestionAnswer, {
               where: {
@@ -488,7 +500,7 @@ export class UsedItemService {
           const updatedUseditemQuestionAnswer = {
             ...fetchUseditemQuestionAnswer,
             ...updateUseditemQuestionAnswerInput,
-            user: fetchUser,
+            user,
             updatedAt: new Date(),
           };
           const result = await transactionalEntityManager.save(

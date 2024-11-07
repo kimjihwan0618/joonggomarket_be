@@ -126,24 +126,23 @@ export class UserService {
     return user;
   }
 
-  async updateUserPoint(_id: string, price: number): Promise<User> {
+  async updateUserPoint(user: User, price: number): Promise<User> {
     return await this.userRepository.manager.transaction(
       async (transactionalEntityManager: EntityManager) => {
         try {
-          const user = await this.findById(_id);
+          const amount: number = user.userPoint.amount + price;
           const resultUserPoint = await transactionalEntityManager.save(
             UserPoint,
             {
               ...user.userPoint,
-              amount: user.userPoint.amount + price,
+              amount,
               updatedAt: new Date(),
             },
           );
           const updateUser = {
             ...user,
-            UserPoint: { ...resultUserPoint },
+            userPoint: { ...resultUserPoint },
           };
-
           return updateUser;
         } catch (error) {
           const msg = '결제 정보를 처리하는중 에러가 발생하였습니다.';

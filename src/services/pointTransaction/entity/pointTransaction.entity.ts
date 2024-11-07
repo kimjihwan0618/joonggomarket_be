@@ -10,7 +10,8 @@ export class PointTransaction {
   @PrimaryGeneratedColumn('uuid')
   _id: string;
 
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
+  @Column({ nullable: true })
   impUid: string;
 
   @Field(() => Int)
