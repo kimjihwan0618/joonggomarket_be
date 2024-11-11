@@ -26,4 +26,13 @@ export class UserResolver {
   ): Promise<User> {
     return this.userService.updateUser(updateUserInput, user);
   }
+
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Boolean)
+  async resetUserPassword(
+    @Args('password') newPassword: string,
+    @CurrentUser() user: User,
+  ): Promise<boolean> {
+    return this.userService.resetUserPassword(newPassword, user);
+  }
 }

@@ -90,6 +90,98 @@ export class PointTransactionService {
     }
   }
 
+  async fetchPointTransactionsOfLoading(
+    search: string,
+    page: number,
+    user: User,
+  ): Promise<PointTransaction[]> {
+    try {
+      const whereConditions: FindOptionsWhere<PointTransaction> = {
+        user: { _id: user._id },
+        status: '충전',
+      };
+
+      const LIMIT = 10;
+      const currentPage = page || 1;
+      const options: FindManyOptions<PointTransaction> = {
+        where: whereConditions,
+        skip: (currentPage - 1) * LIMIT,
+        take: LIMIT,
+        order: {
+          createdAt: 'DESC',
+        },
+      };
+
+      return this.pointTransactionRepository.find(options);
+    } catch (error) {
+      const msg = '충전 내역을 조회하는데 오류가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
+    }
+  }
+
+  async fetchPointTransactionsOfBuying(
+    search: string,
+    page: number,
+    user: User,
+  ): Promise<PointTransaction[]> {
+    try {
+      const whereConditions: FindOptionsWhere<PointTransaction> = {
+        user: { _id: user._id },
+        status: '구매',
+      };
+
+      const LIMIT = 10;
+      const currentPage = page || 1;
+      const options: FindManyOptions<PointTransaction> = {
+        relations: ['useditem'],
+        where: whereConditions,
+        skip: (currentPage - 1) * LIMIT,
+        take: LIMIT,
+        order: {
+          createdAt: 'DESC',
+        },
+      };
+
+      return this.pointTransactionRepository.find(options);
+    } catch (error) {
+      const msg = '구매 내역을 조회하는데 오류가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
+    }
+  }
+
+  async fetchPointTransactionsOfSelling(
+    search: string,
+    page: number,
+    user: User,
+  ): Promise<PointTransaction[]> {
+    try {
+      const whereConditions: FindOptionsWhere<PointTransaction> = {
+        user: { _id: user._id },
+        status: '판매',
+      };
+
+      const LIMIT = 10;
+      const currentPage = page || 1;
+      const options: FindManyOptions<PointTransaction> = {
+        relations: ['useditem'],
+        where: whereConditions,
+        skip: (currentPage - 1) * LIMIT,
+        take: LIMIT,
+        order: {
+          createdAt: 'DESC',
+        },
+      };
+
+      return this.pointTransactionRepository.find(options);
+    } catch (error) {
+      const msg = '판매 내역을 조회하는데 오류가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
+    }
+  }
+
   async createPointTransactionOfLoading(
     impUid: string,
     user: User,
@@ -156,20 +248,6 @@ export class PointTransactionService {
               fetchUseditem.price,
             );
 
-            await transactionalEntityManager.save(PointTransaction, {
-              status: '구매',
-              amount: -fetchUseditem.price,
-              balance: resultBuyer.userPoint.amount,
-              user: resultBuyer,
-            });
-
-            await transactionalEntityManager.save(PointTransaction, {
-              status: '판매',
-              amount: fetchUseditem.price,
-              balance: resultSeller.userPoint.amount,
-              user: resultSeller,
-            });
-
             const updateUseditem = {
               ...fetchUseditem,
               buyer: resultBuyer,
@@ -177,6 +255,22 @@ export class PointTransactionService {
               soldAt: new Date(),
               updateAt: new Date(),
             };
+
+            await transactionalEntityManager.save(PointTransaction, {
+              status: '구매',
+              amount: -fetchUseditem.price,
+              balance: resultBuyer.userPoint.amount,
+              user: resultBuyer,
+              useditem: updateUseditem,
+            });
+
+            await transactionalEntityManager.save(PointTransaction, {
+              status: '판매',
+              amount: fetchUseditem.price,
+              balance: resultSeller.userPoint.amount,
+              user: resultSeller,
+              useditem: fetchUseditem,
+            });
 
             const resultUseditem = await transactionalEntityManager.save(
               UsedItem,

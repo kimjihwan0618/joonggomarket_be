@@ -14,6 +14,7 @@ import { Int } from '@nestjs/graphql';
 import { UsedItemAddress } from './useditemAddress.entity';
 import { UsedItemQuestion } from './useditemQuestion.entity';
 import { User } from '@/services/user/entity/user.entity';
+import { PointTransaction } from '@/services/pointTransaction/entity/pointTransaction.entity';
 
 @ObjectType()
 @Entity('useditem_list')
@@ -77,6 +78,18 @@ export class UsedItem {
   @JoinColumn()
   @Field(() => UsedItemAddress, { nullable: true })
   useditemAddress: UsedItemAddress;
+
+  @OneToMany(
+    () => PointTransaction,
+    (pointTransaction) => pointTransaction.useditem,
+    {
+      cascade: true,
+      onDelete: 'CASCADE',
+    },
+  )
+  @JoinColumn()
+  @HideField()
+  pointTransaction: PointTransaction;
 
   @Field(() => User, { nullable: true })
   @JoinColumn()

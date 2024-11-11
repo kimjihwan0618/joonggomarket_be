@@ -60,6 +60,27 @@ export class UserService {
     );
   }
 
+  async resetUserPassword(newPassword: string, user: User): Promise<boolean> {
+    return await this.userRepository.manager.transaction(
+      async (transactionalEntityManager: EntityManager) => {
+        try {
+          const fetchUser = await this.findById(user._id);
+          const hashedPassword = await bcrypt.hash(newPassword, 10);
+          const updatedUser = {
+            ...fetchUser,
+            password: hashedPassword,
+          };
+
+          await transactionalEntityManager.save(User, updatedUser);
+          return true;
+        } catch (error) {
+          this.logger.error(error.message + error);
+          throw new InternalServerErrorException(error.message);
+        }
+      },
+    );
+  }
+
   async updateUser(
     updateUserInput: UpdateUserInput,
     user: User,

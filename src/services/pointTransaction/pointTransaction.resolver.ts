@@ -42,6 +42,47 @@ export class PointTransactionResolver {
   }
 
   @UseGuards(GqlAuthGuard)
+  @Query(() => [PointTransaction])
+  async fetchPointTransactionsOfLoading(
+    @Args('search', { nullable: true }) search: string,
+    @Args('page', { type: () => Int, nullable: true }) page: number,
+    @CurrentUser() user: User,
+  ): Promise<PointTransaction[]> {
+    return this.pointTransactionService.fetchPointTransactionsOfLoading(
+      search,
+      page,
+      user,
+    );
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Query(() => [PointTransaction])
+  async fetchPointTransactionsOfBuying(
+    @Args('search', { nullable: true }) search: string,
+    @Args('page', { type: () => Int, nullable: true }) page: number,
+    @CurrentUser() user: User,
+  ): Promise<PointTransaction[]> {
+    return this.pointTransactionService.fetchPointTransactionsOfBuying(
+      search,
+      page,
+      user,
+    );
+  }
+  @UseGuards(GqlAuthGuard)
+  @Query(() => [PointTransaction])
+  async fetchPointTransactionsOfSelling(
+    @Args('search', { nullable: true }) search: string,
+    @Args('page', { type: () => Int, nullable: true }) page: number,
+    @CurrentUser() user: User,
+  ): Promise<PointTransaction[]> {
+    return this.pointTransactionService.fetchPointTransactionsOfSelling(
+      search,
+      page,
+      user,
+    );
+  }
+
+  @UseGuards(GqlAuthGuard)
   @Mutation(() => PointTransaction)
   async createPointTransactionOfBuyingAndSelling(
     @Args('useritemId', { type: () => ID }) useritemId: string,

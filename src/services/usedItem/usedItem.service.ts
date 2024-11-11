@@ -340,9 +340,8 @@ export class UsedItemService {
 
           return resultUseditem.pickedCount;
         } catch (error) {
-          const msg = '상품을 찜하는데 오류가 발생하였습니다.';
-          this.logger.error(msg + error);
-          throw new InternalServerErrorException(msg);
+          this.logger.error(error.message + error);
+          throw new InternalServerErrorException(error.message);
         }
       },
     );
@@ -376,9 +375,8 @@ export class UsedItemService {
             useditemQuestion,
           );
         } catch (error) {
-          const msg = '상품 질문을 생성하는중 오류가 발생하였습니다.';
-          this.logger.error(msg + error);
-          throw new InternalServerErrorException(msg);
+          this.logger.error(error.message + error);
+          throw new InternalServerErrorException(error.message);
         }
       },
     );
@@ -398,9 +396,8 @@ export class UsedItemService {
       await this.useditemQuestionRepository.delete(useditemQuestionId);
       return useditemQuestionId;
     } catch (error) {
-      const msg = '상품 질문 삭제하는데 오류가 발생하였습니다.';
-      this.logger.error(msg + error);
-      throw new InternalServerErrorException(msg);
+      this.logger.error(error.message + error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -434,9 +431,8 @@ export class UsedItemService {
           );
           return result;
         } catch (error) {
-          const msg = '상품 질문을 수정하는데 오류가 발생하였습니다.';
-          this.logger.error(msg + error);
-          throw new InternalServerErrorException(msg);
+          this.logger.error(error.message + error);
+          throw new InternalServerErrorException(error.message);
         }
       },
     );
@@ -473,9 +469,8 @@ export class UsedItemService {
             useditemQuestionAnswer,
           );
         } catch (error) {
-          const msg = '상품 질문 답변을 생성하는중 오류가 발생하였습니다.';
-          this.logger.error(msg + error);
-          throw new InternalServerErrorException(msg);
+          this.logger.error(error.message + error);
+          throw new InternalServerErrorException(error.message);
         }
       },
     );
@@ -500,9 +495,8 @@ export class UsedItemService {
       );
       return useditemQuestionAnswerId;
     } catch (error) {
-      const msg = '상품 질문 답변 삭제하는데 오류가 발생하였습니다.';
-      this.logger.error(msg + error);
-      throw new InternalServerErrorException(msg);
+      this.logger.error(error.message + error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -540,9 +534,8 @@ export class UsedItemService {
           );
           return result;
         } catch (error) {
-          const msg = '상품 질문 답변을 수정하는데 오류가 발생하였습니다.';
-          this.logger.error(msg + error);
-          throw new InternalServerErrorException(msg);
+          this.logger.error(error.message + error);
+          throw new InternalServerErrorException(error.message);
         }
       },
     );

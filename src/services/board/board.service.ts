@@ -200,26 +200,28 @@ export class BoardService {
       const fetchBoard = await this.boardRepository.findOne({
         where: { _id: boardId, password },
       });
+
+      if (!fetchBoard) {
+        throw new NotFoundException('비밀번호를 확인해주세요!');
+      }
+
       const params = {
         Bucket: this.bucketName,
         Key: '',
       };
+
       for (let i = 0; i < fetchBoard.images.length; i++) {
         params.Key = fetchBoard.images[i]
           ? fetchBoard.images[i].slice(1)
           : 'none';
         await this.fileManagerService.deleteFile(params, 'DELETE_IMAGE', '');
       }
-      if (!fetchBoard) {
-        throw new NotFoundException('해당 게시글을 조회하는데 실패하였습니다.');
-      }
 
       await this.boardAddressRepository.delete(boardId);
       return true;
     } catch (error) {
-      const msg = '게시글 삭제하는데 오류가 발생하였습니다.';
-      this.logger.error(msg + error);
-      throw new InternalServerErrorException(msg);
+      this.logger.error(error.message + error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -250,9 +252,8 @@ export class BoardService {
             boardComment,
           );
         } catch (error) {
-          const msg = '게시글 댓글을 생성하는중 오류가 발생하였습니다.';
-          this.logger.error(msg + error);
-          throw new InternalServerErrorException(msg);
+          this.logger.error(error.message + error);
+          throw new InternalServerErrorException(error.message);
         }
       },
     );
@@ -312,9 +313,8 @@ export class BoardService {
           );
           return result;
         } catch (error) {
-          const msg = '게시글 댓글 수정하는데 오류가 발생하였습니다.';
-          this.logger.error(msg + error);
-          throw new InternalServerErrorException(msg);
+          this.logger.error(error.message + error);
+          throw new InternalServerErrorException(error.message);
         }
       },
     );
@@ -334,9 +334,8 @@ export class BoardService {
       await this.boardCommentRepository.delete(boardCommentId);
       return true;
     } catch (error) {
-      const msg = '게시글 댓글 삭제하는데 오류가 발생하였습니다.';
-      this.logger.error(msg + error);
-      throw new InternalServerErrorException(msg);
+      this.logger.error(error.message + error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -349,7 +348,7 @@ export class BoardService {
           });
 
           if (!fetchBoard) {
-            throw new NotFoundException('게시글을 조회하는데 실패하였습니다..');
+            throw new NotFoundException('게시글을 조회하는데 실패하였습니다.');
           }
 
           const resultBoard = await transactionalEntityManager.save(Board, {
@@ -362,9 +361,8 @@ export class BoardService {
           );
           return resultBoard.likeCount;
         } catch (error) {
-          const msg = '게시글 좋아요 중에 오류가 발생하였습니다.';
-          this.logger.error(msg + error);
-          throw new InternalServerErrorException(msg);
+          this.logger.error(error.message + error);
+          throw new InternalServerErrorException(error.message);
         }
       },
     );
@@ -379,7 +377,7 @@ export class BoardService {
           });
 
           if (!fetchBoard) {
-            throw new NotFoundException('게시글을 조회하는데 실패하였습니다..');
+            throw new NotFoundException('게시글을 조회하는데 실패하였습니다.');
           }
 
           const resultBoard = await transactionalEntityManager.save(Board, {
@@ -392,9 +390,8 @@ export class BoardService {
           );
           return resultBoard.dislikeCount;
         } catch (error) {
-          const msg = '게시글 싫어요 중에 오류가 발생하였습니다.';
-          this.logger.error(msg + error);
-          throw new InternalServerErrorException(msg);
+          this.logger.error(error.message + error);
+          throw new InternalServerErrorException(error.message);
         }
       },
     );
