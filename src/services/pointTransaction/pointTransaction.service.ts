@@ -79,7 +79,7 @@ export class PointTransactionService {
               status: '충전',
               amount,
               balance: user.userPoint.amount + amount,
-              user,
+              user: resultUser,
             });
             this.logger.info(
               `-- 유저 포인트 충전,  ${user.name}, ${user.userPoint.amount} --`,
