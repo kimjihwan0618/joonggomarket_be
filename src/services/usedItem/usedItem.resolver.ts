@@ -50,16 +50,19 @@ export class UsedItemResolver {
   async fetchUseditemsIPicked(
     @Args('search', { nullable: true }) search: string,
     @Args('page', { type: () => Int, nullable: true }) page: number,
+    @CurrentUser() user: User,
   ): Promise<UsedItem[]> {
-    return this.usedItemService.fetchUseditemsIPicked(search, page);
+    return this.usedItemService.fetchUseditemsIPicked(search, page, user);
   }
 
+  @UseGuards(GqlAuthGuard)
   @Query(() => [UsedItem])
   async fetchUseditemsISold(
     @Args('search', { nullable: true }) search: string,
     @Args('page', { type: () => Int, nullable: true }) page: number,
+    @CurrentUser() user: User,
   ): Promise<UsedItem[]> {
-    return this.usedItemService.fetchUseditemsISold(search, page);
+    return this.usedItemService.fetchUseditemsISold(search, page, user);
   }
 
   @Query(() => [UsedItem])
@@ -96,13 +99,13 @@ export class UsedItemResolver {
     return this.usedItemService.createUseditem(createUseditemInput, user);
   }
 
-  @UseGuards(GqlAuthGuard)
-  @Mutation(() => ID)
-  async deleteUseditem(
-    @Args('useditemId', { type: () => ID }) useditemId: string,
-  ): Promise<string> {
-    return this.usedItemService.deleteUseditem(useditemId);
-  }
+  // @UseGuards(GqlAuthGuard)
+  // @Mutation(() => ID)
+  // async deleteUseditem(
+  //   @Args('useditemId', { type: () => ID }) useditemId: string,
+  // ): Promise<string> {
+  //   return this.usedItemService.deleteUseditem(useditemId);
+  // }
 
   @UseGuards(GqlAuthGuard)
   @Mutation(() => UsedItem)

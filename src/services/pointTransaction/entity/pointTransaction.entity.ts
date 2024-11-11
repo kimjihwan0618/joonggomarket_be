@@ -27,15 +27,15 @@ export class PointTransaction {
   status: string; // 충전, 구매, 판매
 
   @Field(() => GraphQLDateTime)
-  @Column({ type: 'timestamp', default: () => 'NOW()' })
+  @Column({ type: 'timestamptz', default: () => 'NOW()' })
   createdAt: Date;
 
   @Field(() => GraphQLDateTime)
-  @Column({ type: 'timestamp', default: () => 'NOW()' })
+  @Column({ type: 'timestamptz', default: () => 'NOW()' })
   updatedAt: Date;
 
   @Field(() => GraphQLDateTime, { nullable: true })
-  @Column({ type: 'timestamp', nullable: true, default: null })
+  @Column({ type: 'timestamptz', nullable: true, default: null })
   deletedAt: Date;
 
   @HideField()

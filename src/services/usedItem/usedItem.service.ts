@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -106,12 +105,58 @@ export class UsedItemService {
   async fetchUseditemsIPicked(
     search: string,
     page: number,
+    user: User,
   ): Promise<UsedItem[]> {
-    return [new UsedItem(), new UsedItem()];
+    try {
+      const whereConditions: FindOptionsWhere<UsedItem> = {};
+      whereConditions.pickers = { _id: user._id };
+
+      if (search) {
+        whereConditions.name = ILike(`%${search}%`);
+      }
+
+      const LIMIT = 10;
+      const currentPage = page || 1;
+      const options: FindManyOptions<UsedItem> = {
+        relations: ['seller'],
+        where: whereConditions,
+        skip: (currentPage - 1) * LIMIT,
+        take: LIMIT,
+      };
+      return this.useditemRepository.find(options);
+    } catch (error) {
+      const msg = '마이찜 데이터를 조회하는데 오류가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
+    }
   }
 
-  async fetchUseditemsISold(search: string, page: number): Promise<UsedItem[]> {
-    return [new UsedItem(), new UsedItem()];
+  async fetchUseditemsISold(
+    search: string,
+    page: number,
+    user: User,
+  ): Promise<UsedItem[]> {
+    try {
+      const whereConditions: FindOptionsWhere<UsedItem> = {};
+      if (search) {
+        whereConditions.name = ILike(`%${search}%`);
+      }
+      whereConditions.seller = { _id: user._id };
+
+      const LIMIT = 10;
+      const currentPage = page || 1;
+      const options: FindManyOptions<UsedItem> = {
+        relations: ['seller'],
+        where: whereConditions,
+        skip: (currentPage - 1) * LIMIT,
+        take: LIMIT,
+      };
+      return this.useditemRepository.find(options);
+    } catch (error) {
+      const msg = '나의 상품을 조회하는데 오류가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
+    }
   }
 
   async fetchUseditemsOfTheBest(): Promise<UsedItem[]> {
@@ -202,9 +247,9 @@ export class UsedItemService {
     );
   }
 
-  async deleteUseditem(useditemId: string): Promise<string> {
-    return '';
-  }
+  // async deleteUseditem(useditemId: string): Promise<string> {
+  //   return '';
+  // }
 
   async updateUseditem(
     updateUseditemInput: UpdateUseditemInput,
@@ -271,9 +316,12 @@ export class UsedItemService {
             throw new NotFoundException('상품 조회결과가 없습니다.');
           }
 
-          const isPicked = user.picked_useditems.some(
-            (item) => item._id === useditemId,
-          );
+          const userWithPickedUseditems =
+            this.userService.findUserWithPickedUsedItems(user._id);
+          const isPicked =
+            (await userWithPickedUseditems).picked_useditems?.some(
+              (item) => item._id === useditemId,
+            ) || false;
 
           if (isPicked) {
             usedItem.pickers = usedItem.pickers.filter(

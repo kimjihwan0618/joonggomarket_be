@@ -15,7 +15,7 @@ export class UserPoint {
   amount: number;
 
   @Field(() => GraphQLDateTime, { nullable: true })
-  @Column({ type: 'timestamp', nullable: true, default: null })
+  @Column({ type: 'timestamptz', nullable: true, default: null })
   updatedAt: Date;
 
   @OneToOne(() => User, (user) => user.userPoint, {

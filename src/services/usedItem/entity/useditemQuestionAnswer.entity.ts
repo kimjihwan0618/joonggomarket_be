@@ -16,15 +16,15 @@ export class UseditemQuestionAnswer {
   contents: string;
 
   @Field(() => GraphQLDateTime)
-  @Column({ type: 'timestamp', default: () => 'NOW()' })
+  @Column({ type: 'timestamptz', default: () => 'NOW()' })
   createdAt: Date;
 
   @Field(() => GraphQLDateTime)
-  @Column({ type: 'timestamp', default: () => 'NOW()' })
+  @Column({ type: 'timestamptz', default: () => 'NOW()' })
   updatedAt: Date;
 
   @Field(() => GraphQLDateTime, { nullable: true })
-  @Column({ type: 'timestamp', nullable: true, default: null })
+  @Column({ type: 'timestamptz', nullable: true, default: null })
   deletedAt: Date;
 
   @Field(() => User)

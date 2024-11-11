@@ -51,7 +51,7 @@ export class UsedItem {
   pickedCount: number;
 
   @Field(() => GraphQLDateTime, { nullable: true })
-  @Column({ type: 'timestamp', nullable: true, default: null })
+  @Column({ type: 'timestamptz', nullable: true, default: null })
   soldAt: Date;
 
   @Field(() => GraphQLDateTime)
@@ -63,7 +63,7 @@ export class UsedItem {
   updatedAt: Date;
 
   @Field(() => GraphQLDateTime, { nullable: true })
-  @Column({ type: 'timestamp', nullable: true, default: null })
+  @Column({ type: 'timestamptz', nullable: true, default: null })
   deletedAt: Date;
 
   @OneToOne(

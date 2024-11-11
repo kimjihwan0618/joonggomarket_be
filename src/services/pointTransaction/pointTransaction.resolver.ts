@@ -1,4 +1,4 @@
-import { Resolver, Mutation, Args, ID } from '@nestjs/graphql';
+import { Resolver, Mutation, Args, ID, Int, Query } from '@nestjs/graphql';
 import { PointTransaction } from './entity/pointTransaction.entity';
 import { PointTransactionService } from './pointTransaction.service';
 import { UseGuards } from '@nestjs/common';
@@ -23,6 +23,20 @@ export class PointTransactionResolver {
   ): Promise<PointTransaction> {
     return this.pointTransactionService.createPointTransactionOfLoading(
       impUid,
+      user,
+    );
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Query(() => [PointTransaction])
+  async fetchPointTransactions(
+    @Args('search', { nullable: true }) search: string,
+    @Args('page', { type: () => Int, nullable: true }) page: number,
+    @CurrentUser() user: User,
+  ): Promise<PointTransaction[]> {
+    return this.pointTransactionService.fetchPointTransactions(
+      search,
+      page,
       user,
     );
   }

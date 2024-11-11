@@ -4,7 +4,12 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, EntityManager } from 'typeorm';
+import {
+  Repository,
+  EntityManager,
+  FindOptionsWhere,
+  FindManyOptions,
+} from 'typeorm';
 import * as log4js from 'log4js';
 import { PointTransaction } from './entity/pointTransaction.entity';
 import axios from 'axios';
@@ -53,6 +58,35 @@ export class PointTransactionService {
     } catch (error) {
       this.logger.error('PORONE 토큰 요청 실패:', error);
       throw new Error('결제정보를 등록하는데 오류가 발생하였습니다.');
+    }
+  }
+
+  async fetchPointTransactions(
+    search: string,
+    page: number,
+    user: User,
+  ): Promise<PointTransaction[]> {
+    try {
+      const whereConditions: FindOptionsWhere<PointTransaction> = {
+        user: { _id: user._id },
+      };
+
+      const LIMIT = 10;
+      const currentPage = page || 1;
+      const options: FindManyOptions<PointTransaction> = {
+        where: whereConditions,
+        skip: (currentPage - 1) * LIMIT,
+        take: LIMIT,
+        order: {
+          createdAt: 'DESC',
+        },
+      };
+
+      return this.pointTransactionRepository.find(options);
+    } catch (error) {
+      const msg = '포인트 전체 내역을 조회하는데 오류가 발생하였습니다.';
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
     }
   }
 
