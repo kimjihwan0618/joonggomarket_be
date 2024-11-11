@@ -63,12 +63,18 @@ export class AuthService {
         _id: user._id,
         email: user.email,
       };
-
-      // 새로운 Access Token과 Refresh Token 생성
-      const result = {
-        accessToken: this.jwtService.sign({ ...payload, expiresIn: '1h' }),
-        myRefreshToken: this.jwtService.sign({ ...payload, expiresIn: '7d' }),
-      };
+      const result = { accessToken: '', myRefreshToken: '' };
+      // 유저 DB 존재유무 체크 후  체크 후 새  토큰 발급
+      if (await this.userService.findById(user._id)) {
+        result.accessToken = this.jwtService.sign({
+          ...payload,
+          expiresIn: '1h',
+        });
+        result.myRefreshToken = this.jwtService.sign({
+          ...payload,
+          expiresIn: '7d',
+        });
+      }
 
       return result;
     } catch (error) {

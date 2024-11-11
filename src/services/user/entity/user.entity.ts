@@ -69,7 +69,7 @@ export class User {
   @HideField()
   picked_useditems: UsedItem[];
 
-  @OneToOne(() => UsedItem, (usedItem) => usedItem.buyer, {
+  @OneToMany(() => UsedItem, (usedItem) => usedItem.buyer, {
     nullable: true,
     onDelete: 'CASCADE',
   })

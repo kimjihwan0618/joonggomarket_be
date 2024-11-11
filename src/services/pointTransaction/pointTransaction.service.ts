@@ -121,42 +121,44 @@ export class PointTransactionService {
               fetchUseditem.seller,
               fetchUseditem.price,
             );
-            console.log('비교를해보자---------------------------');
-            console.log('비교를해보자---------------------------');
-            console.log(fetchUseditem);
-            console.log(resultBuyer);
-            console.log('비교를해보자---------------------------222222');
-            console.log('비교를해보자---------------------------222222');
-            console.log('비교를해보자---------------------------222222');
+
+            await transactionalEntityManager.save(PointTransaction, {
+              status: '구매',
+              amount: -fetchUseditem.price,
+              balance: resultBuyer.userPoint.amount,
+              user: resultBuyer,
+            });
+
+            await transactionalEntityManager.save(PointTransaction, {
+              status: '판매',
+              amount: fetchUseditem.price,
+              balance: resultSeller.userPoint.amount,
+              user: resultSeller,
+            });
+
             const updateUseditem = {
               ...fetchUseditem,
-              // buyer: { ...resultBuyer },
+              buyer: resultBuyer,
+              seller: resultSeller,
               soldAt: new Date(),
               updateAt: new Date(),
             };
+
             const resultUseditem = await transactionalEntityManager.save(
               UsedItem,
               updateUseditem,
             );
-            const resultBuyerPointTransaction =
-              await transactionalEntityManager.create(PointTransaction, {
-                status: '구매',
-                amount: -fetchUseditem.price,
-                balance: resultBuyer.userPoint.amount,
-                user: resultBuyer,
-              });
-            const resultSellerPointTransaction =
-              await transactionalEntityManager.create(PointTransaction, {
-                status: '판매',
-                amount: fetchUseditem.price,
-                balance: resultSeller.userPoint.amount,
-                user: resultSeller,
-              });
+
+            this.logger.info(
+              `-- 상품 구매  : ${JSON.stringify(resultUseditem)} --`,
+            );
+
             return resultUseditem;
           }
         } catch (error) {
-          this.logger.error(error.message + error);
-          throw new InternalServerErrorException(error.message);
+          const msg = '상품을 구매하는데 오류가 발생하였습니다.';
+          this.logger.error(msg + error);
+          throw new InternalServerErrorException(msg);
         }
       },
     );

@@ -258,23 +258,6 @@ export class UsedItemService {
     );
   }
 
-  async updateUseditemSoldAt(useditem: UsedItem): Promise<UsedItem> {
-    return await this.useditemRepository.manager.transaction(
-      async (transactionalEntityManager: EntityManager) => {
-        try {
-          return await transactionalEntityManager.save(UsedItem, {
-            ...useditem,
-            soldAt: new Date(),
-          });
-        } catch (error) {
-          const msg = '상품 구매처리하는데 오류가 발생하였습니다.';
-          this.logger.error(msg + error);
-          throw new InternalServerErrorException(msg);
-        }
-      },
-    );
-  }
-
   async toggleUseditemPick(useditemId: string, user: User): Promise<number> {
     return await this.useditemRepository.manager.transaction(
       async (transactionalEntityManager: EntityManager) => {

@@ -22,6 +22,7 @@ export class AuthResolver {
     const myRefreshToken = context.req.cookies['myRefreshToken'];
     const token = await this.authService.restoreAccessToken(myRefreshToken);
     const result = new Token();
+    console.log(token);
     result.accessToken = token?.accessToken;
     context.res.cookie('myRefreshToken', token?.myRefreshToken || '', {
       httpOnly: true,

@@ -80,7 +80,7 @@ export class UsedItem {
 
   @Field(() => User, { nullable: true })
   @JoinColumn()
-  @OneToOne(() => User, (user) => user.buyed_useditem, {
+  @ManyToOne(() => User, (user) => user.buyed_useditem, {
     cascade: true,
     onDelete: 'CASCADE',
   })
