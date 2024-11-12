@@ -28,7 +28,8 @@ import { UsedItemModule } from './services/usedItem/useditem.module';
       isGlobal: true,
       load: [],
       // cache: true,
-      envFilePath: `src/config/env/.${process.env.NODE_ENV}.env`,
+      // envFilePath: `src/config/env/.${process.env.NODE_ENV}.env`,
+      envFilePath: `.env`,
     }),
     TypeOrmModule.forRoot({
       type: process.env.DB_TYPE as
