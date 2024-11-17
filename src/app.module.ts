@@ -63,6 +63,8 @@ import { UsedItemModule } from './services/usedItem/useditem.module';
       driver: ApolloDriver,
       autoSchemaFile: true,
       csrfPrevention: false,
+      playground: true, // 배포 환경에서는 명시적으로 입력
+      introspection: true, // 배포 환경에서는 명시적으로 입력
       context: ({ req, res }) => ({ req, res }),
     }),
     RedisModule.forRoot({
