@@ -61,6 +61,7 @@ import { UsedItemModule } from './services/usedItem/useditem.module';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
+      csrfPrevention: false,
       context: ({ req, res }) => ({ req, res }),
     }),
     RedisModule.forRoot({
