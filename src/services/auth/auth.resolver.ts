@@ -71,7 +71,7 @@ export class AuthResolver {
     context.res.clearCookie('myRefreshToken', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'none',
     });
     return result;
   }
