@@ -28,12 +28,9 @@ export class AuthResolver {
     context.res.cookie('myRefreshToken', token?.myRefreshToken || '', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none', // 교차 도메인 쿠키 허용
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict', // 교차 도메인 쿠키 허용
       maxAge: token ? 7 * 24 * 60 * 60 * 1000 : 0,
-      domain:
-        process.env.NODE_ENV === 'production'
-          ? 'joonggomarket.site'
-          : 'localhost',
+      domain: process.env.DOMAIN,
       // maxAge: token ? 60 * 60 * 1000 : 0,
     });
     return result;
@@ -51,12 +48,9 @@ export class AuthResolver {
     context.res.cookie('myRefreshToken', token?.myRefreshToken || '', {
       httpOnly: true, // JavaScript에서 접근 불가능
       secure: process.env.NODE_ENV === 'production', // HTTPS에서만 사용
-      sameSite: 'none',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
       maxAge: token ? 7 * 24 * 60 * 60 * 1000 : 0, // 1주일 동안 유효
-      domain:
-        process.env.NODE_ENV === 'production'
-          ? 'joonggomarket.site'
-          : 'localhost',
+      domain: process.env.DOMAIN,
       // maxAge: token ? 60 * 60 * 1000 : 0, // 1분 동안 유효
     });
     return result;
@@ -71,7 +65,7 @@ export class AuthResolver {
     context.res.clearCookie('myRefreshToken', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
     });
     return result;
   }
