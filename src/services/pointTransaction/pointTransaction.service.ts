@@ -90,6 +90,28 @@ export class PointTransactionService {
     }
   }
 
+  async fetchPointTransactionsCount(
+    status: string,
+    user: User,
+  ): Promise<number> {
+    try {
+      const query =
+        this.pointTransactionRepository.createQueryBuilder('pointTransaction');
+
+      query.where('pointTransaction.user._id = :userId', { userId: user._id });
+
+      if (status) {
+        query.andWhere('pointTransaction.status = :status', { status });
+      }
+
+      return query.getCount();
+    } catch (error) {
+      const msg = `${status ? status : ''} 포인트 이력을 조회하는데 오류가 발생하였습니다.`;
+      this.logger.error(msg + error);
+      throw new InternalServerErrorException(msg);
+    }
+  }
+
   async fetchPointTransactionsOfLoading(
     search: string,
     page: number,

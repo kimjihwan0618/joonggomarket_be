@@ -1,5 +1,7 @@
 # env
 /src/config/env
+.env.production
+.env.development
 
 # compiled output
 /dist

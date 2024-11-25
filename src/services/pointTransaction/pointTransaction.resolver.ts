@@ -16,6 +16,19 @@ export class PointTransactionResolver {
   ) {}
 
   @UseGuards(GqlAuthGuard)
+  @Query(() => Int)
+  async fetchPointTransactionsCount(
+    @Args('status', { type: () => String, nullable: true })
+    status: string,
+    @CurrentUser() user: User,
+  ): Promise<number> {
+    return this.pointTransactionService.fetchPointTransactionsCount(
+      status,
+      user,
+    );
+  }
+
+  @UseGuards(GqlAuthGuard)
   @Mutation(() => PointTransaction)
   async createPointTransactionOfLoading(
     @Args('impUid', { type: () => ID }) impUid: string,
