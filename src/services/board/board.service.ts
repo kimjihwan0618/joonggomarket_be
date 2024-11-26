@@ -329,7 +329,7 @@ export class BoardService {
         where: { _id: boardCommentId, password },
       });
       if (!boardComment) {
-        throw new NotFoundException('게시글을 조회하는데 실패하였습니다.');
+        throw new NotFoundException('비밀번호를 확인해주세요.');
       }
       await this.boardCommentRepository.delete(boardCommentId);
       return true;
