@@ -22,7 +22,6 @@ export class BoardService {
   private logger = log4js.getLogger(BoardService.name);
   private s3: S3;
   private bucketName: string = process.env.AWS_S3_BUCKET;
-  private fileManagerService: FileManagerService;
   constructor(
     @InjectRepository(Board)
     private boardRepository: Repository<Board>,
@@ -32,6 +31,8 @@ export class BoardService {
 
     @InjectRepository(BoardComment)
     private boardCommentRepository: Repository<BoardComment>,
+
+    private fileManagerService: FileManagerService,
   ) {
     this.s3 = new S3({
       region: process.env.AWS_REGION,
@@ -64,6 +65,7 @@ export class BoardService {
       const limit = 10; // 페이지당 10개의 결과
       const currentPage = page || 1; // page가 제공되지 않으면 1로 설정
       query.skip((currentPage - 1) * limit).take(limit);
+      query.orderBy('board.createdAt', 'DESC');
 
       return query.getMany();
     } catch (error) {
@@ -124,9 +126,17 @@ export class BoardService {
     return await this.boardRepository.manager.transaction(
       async (transactionalEntityManager: EntityManager) => {
         try {
+          const boardAddress = this.boardAddressRepository.create(
+            createBoardInput.boardAddress,
+          );
+          const savedBoardAddress = await transactionalEntityManager.save(
+            BoardAddress,
+            boardAddress,
+          );
           const board = this.boardRepository.create({
             ...createBoardInput,
-            boardAddress: createBoardInput.boardAddress,
+            _id: savedBoardAddress._id,
+            boardAddress: savedBoardAddress,
           });
           this.logger.info(`-- 게시글 생성 : ${JSON.stringify(board)} --`);
 
@@ -166,6 +176,7 @@ export class BoardService {
             params.Key = fetchBoard.images[i]
               ? fetchBoard.images[i].slice(1)
               : 'none';
+
             await this.fileManagerService.deleteFile(
               params,
               fetchBoard.images[i],
@@ -216,7 +227,6 @@ export class BoardService {
           : 'none';
         await this.fileManagerService.deleteFile(params, 'DELETE_IMAGE', '');
       }
-
       await this.boardAddressRepository.delete(boardId);
       return true;
     } catch (error) {

@@ -1,5 +1,11 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Board } from './board.entity';
 
 @ObjectType()
@@ -24,5 +30,6 @@ export class BoardAddress {
   @OneToOne(() => Board, (board) => board.boardAddress, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn()
   board: Board;
 }
