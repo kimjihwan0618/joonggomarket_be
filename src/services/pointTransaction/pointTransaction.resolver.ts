@@ -96,7 +96,7 @@ export class PointTransactionResolver {
   }
 
   @UseGuards(GqlAuthGuard)
-  @Mutation(() => PointTransaction)
+  @Mutation(() => UsedItem)
   async createPointTransactionOfBuyingAndSelling(
     @Args('useritemId', { type: () => ID }) useritemId: string,
     @CurrentUser() buyer: User,
