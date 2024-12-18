@@ -51,10 +51,10 @@ export class BoardService {
   ): Promise<Board[]> {
     try {
       const query = this.boardRepository.createQueryBuilder('board');
-      if (startDate && endDate) {
+      if (startDate || endDate) {
         query.andWhere('board.createdAt BETWEEN :startDate AND :endDate', {
-          startDate,
-          endDate,
+          startDate: startDate || new Date(0),
+          endDate: endDate || new Date(),
         });
       }
       if (search) {
@@ -95,10 +95,10 @@ export class BoardService {
   ): Promise<number> {
     try {
       const query = this.boardRepository.createQueryBuilder('board');
-      if (startDate && endDate) {
+      if (startDate || endDate) {
         query.andWhere('board.createdAt BETWEEN :startDate AND :endDate', {
-          startDate,
-          endDate,
+          startDate: startDate || new Date(0),
+          endDate: endDate || new Date(),
         });
       }
       if (search) {
