@@ -53,10 +53,10 @@ export class PointTransactionService {
       this.accessToken = data.access_token;
       this.tokenExpiry = data.expired_at;
 
-      this.logger.info('PORONE 새로운 토큰이 발급되었습니다.');
+      this.logger.info('PORTONE 새로운 토큰이 발급되었습니다.');
       return this.accessToken;
     } catch (error) {
-      this.logger.error('PORONE 토큰 요청 실패:', error);
+      this.logger.error('PORTONE 토큰 요청 실패:', error);
       throw new Error('결제정보를 등록하는데 오류가 발생하였습니다.');
     }
   }
@@ -217,7 +217,20 @@ export class PointTransactionService {
             `https://api.iamport.kr/payments/${impUid}?_token=${token}`,
           );
           const { imp_uid, amount } = response?.data?.response;
-          if (imp_uid) {
+          const pointTransactionsOfLoading =
+            await this.pointTransactionRepository.find({
+              where: {
+                impUid,
+              },
+            });
+          if (!imp_uid) {
+            throw new BadRequestException(
+              '결제정보를 조회하는데 실패하였습니다.',
+            );
+          } else if (pointTransactionsOfLoading.length > 0) {
+            throw new BadRequestException('이미 처리된 충전내역입니다.');
+          } else {
+            //  포인트 충전시 PortOne 서비스 거래내역 확인 && DB 중복 처리 여부 확인
             const resultUser: User = await this.userService.updateUserPoint(
               user,
               amount,
@@ -237,10 +250,9 @@ export class PointTransactionService {
               pointTransaction,
             );
           }
-        } catch (error) {
-          const msg = '결제정보를 처리하는도중 오류가 발생하였습니다.';
-          this.logger.error(msg + error);
-          throw new InternalServerErrorException(msg);
+        } catch (error_msg) {
+          this.logger.error(error_msg);
+          throw new InternalServerErrorException(error_msg);
         }
       },
     );
