@@ -22,7 +22,7 @@
   예: `http://localhost:3000, https://example.com`
 
 - **DOMAIN**: 앱의 기본 도메인 (API 요청 시 사용)  
-  예: `https://yourdomain.com`
+  예: `yourdomain.com`
 
 - **REDIS_HOST**: Redis 서버 호스트  
   예: `localhost`
@@ -30,10 +30,10 @@
 - **REDIS_PORT**: Redis 서버 포트  
   예: `6379`
 
-- **IMP_KEY**: 인프라 시스템 API 키  
+- **IMP_KEY**: PORTONE 서비스 API 키  
   예: `your_imp_key`
 
-- **IMP_SECRET**: 인프라 시스템 API 비밀 키  
+- **IMP_SECRET**: PORTONE 서비스 SECRET 키  
   예: `your_imp_secret`
 
 - **AWS_S3_BUCKET**: AWS S3 버킷 이름  
