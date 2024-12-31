@@ -1,73 +1,74 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+## 중고마켓 백엔드 서버 저장소
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+### 개요
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+이 저장소는 중고마켓 서비스의 백엔드 서버 코드 저장소입니다.
 
-## Description
+- **중고마켓 사이트 주소**: [https://joonggomarket.site](https://joonggomarket.site)
+- **GraphQL API Playground**: [https://kimjihodo.synology.me:3459/graphql](https://kimjihodo.synology.me:3459/graphql)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### 사용 기술
 
-## Installation
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=Redis&logoColor=white)  
+![GraphQL](https://img.shields.io/badge/GraphQL-E10098?style=flat-square&logo=GraphQL&logoColor=white)  
+![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=flat-square&logo=NestJS&logoColor=white)  
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=TypeScript&logoColor=white)  
+![Log4js](https://img.shields.io/badge/Log4js-000000?style=flat-square&logoColor=white)  
+![AWS S3](https://img.shields.io/badge/AWS%20S3-569A31?style=flat-square&logo=Amazon%20S3&logoColor=white)  
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=Docker&logoColor=white)  
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=PostgreSQL&logoColor=white)  
+![PortOne](https://img.shields.io/badge/PortOne-0078D7?style=flat-square&logoColor=white)
 
-```bash
-$ yarn install
-```
+- **환경변수**
+  이 프로젝트는 다음과 같은 환경변수들을 사용합니다. `.env` 파일에 값을 설정하여 앱을 구동할 수 있습니다.
 
-## Running the app
+- **APP_PORT**: 애플리케이션이 실행될 포트 번호  
+  예: `3000`
 
-```bash
-# development
-$ yarn run start
+- **ALLOWED_ORIGINS**: 허용된 도메인 리스트 (CORS 설정에 사용)  
+  예: `http://localhost:3000, https://example.com`
 
-# watch mode
-$ yarn run start:dev
+- **DOMAIN**: 앱의 기본 도메인 (API 요청 시 사용)  
+  예: `https://yourdomain.com`
 
-# production mode
-$ yarn run start:prod
-```
+- **REDIS_HOST**: Redis 서버 호스트  
+  예: `localhost`
 
-## Test
+- **REDIS_PORT**: Redis 서버 포트  
+  예: `6379`
 
-```bash
-# unit tests
-$ yarn run test
+- **IMP_KEY**: 인프라 시스템 API 키  
+  예: `your_imp_key`
 
-# e2e tests
-$ yarn run test:e2e
+- **IMP_SECRET**: 인프라 시스템 API 비밀 키  
+  예: `your_imp_secret`
 
-# test coverage
-$ yarn run test:cov
-```
+- **AWS_S3_BUCKET**: AWS S3 버킷 이름  
+  예: `your-bucket-name`
 
-## Support
+- **AWS_REGION**: AWS 리전 (예: `us-west-2`)  
+  예: `us-east-1`
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- **AWS_ACCESS_KEY_ID**: AWS 액세스 키 ID  
+  예: `your_aws_access_key`
 
-## Stay in touch
+- **AWS_SECRET_ACCESS_KEY**: AWS 비밀 액세스 키  
+  예: `your_aws_secret_key`
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- **DB_TYPE**: 데이터베이스 종류 (PostgreSQL 사용)  
+  예: `postgres`
 
-## License
+- **DB_PORT**: 데이터베이스 포트  
+  예: `5432`
 
-Nest is [MIT licensed](LICENSE).
+- **DB_HOST**: 데이터베이스 호스트  
+  예: `localhost`
+
+- **DB_USERNAME**: 데이터베이스 사용자 이름  
+  예: `your_db_user`
+
+- **DB_PASSWORD**: 데이터베이스 비밀번호  
+  예: `your_db_password`
+
+- **DB_NAME**: 데이터베이스 이름  
+  예: `your_db_name`

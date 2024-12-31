@@ -10,10 +10,10 @@ async function bootstrap() {
   app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
 
   app.enableCors({
-    // origin: process.env.ALLOWED_ORIGINS.split(','), // CORS 허용할 도메인
-    origin: (origin, callback) => {
-      callback(null, true); // 모든 도메인 허용
-    },
+    origin: process.env.ALLOWED_ORIGINS.split(','), // CORS 허용할 도메인
+    // origin: (origin, callback) => {
+    //   callback(null, true); // 모든 도메인 허용
+    // },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // 허용할 HTTP 메서드
     credentials: true, // 쿠키와 인증 정보를 허용할지 여부
   });
